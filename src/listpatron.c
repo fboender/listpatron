@@ -51,6 +51,15 @@ typedef struct list_ {
 	int nr_of_rows;
 } list_;
 
+typedef struct import_ {
+	char *filename;
+	char delimiter;
+} import_;
+
+/* Character Separated Value's Import options */
+#define IMPORT_CSV_HEADER         1 << 0 /* First row contains column header titles */
+#define IMPORT_CSV_QUOTE_ENCLODED 1 << 1 /* Fields are enclosed in quotes (single or double) */
+
 /****************************************************************************
  * Prototyping
  ****************************************************************************/
@@ -64,12 +73,10 @@ void list_column_delete (list_ *list, GtkTreeViewColumn *column);
 void list_row_add_empty (list_ *list);
 void list_row_add (list_ *list, int nr_of_cols, char *values[]);
 list_ *list_create (void);
-int list_import_csv (list_ *list, char *filename);
+int list_import_csv (list_ *list, char *filename, char delimiter);
 int list_load (list_ *list, char *filename);
 int list_save (list_ *list, char *filename);
-/* Callback functions */
-void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data);
-
+/* Menu callback functions */
 void ui_menu_file_import_csv_cb (void);
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
@@ -82,6 +89,8 @@ void ui_menu_row_delete_cb (void);
 void ui_menu_debug_addtestdata_cb (void);
 void ui_menu_debug_addtestrows_cb (void);
 void ui_menu_help_about_cb (void);
+/* Various Callback functions */
+void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data);
 void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
 /* User interface creation functions */
 GtkWidget *ui_create_menubar (GtkWidget *window);
@@ -96,7 +105,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/File/_Save"          , NULL, ui_menu_file_save_cb        , 0, "<StockItem>" , GTK_STOCK_SAVE  },
 	{ "/File/Save _As"       , NULL, ui_menu_file_save_as_cb     , 0, "<Item>"                        },
 	{ "/File/_Import"        , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/File/Import/_Comma Separated"        , NULL, ui_menu_file_import_csv_cb , 0, "<Item>"                      },
+	{ "/File/Import/_Character Separated"        , NULL, ui_menu_file_import_csv_cb , 0, "<Item>"                      },
 	{ "/File/_Export"        , NULL, NULL                        , 0, "<Item>"                        },
 	{ "/File/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
 	{ "/File/_Quit"          , NULL, gtk_main_quit               , 0, "<StockItem>" , GTK_STOCK_QUIT  },
@@ -451,7 +460,7 @@ list_ *list_create (void) {
 	return (list);
 }
 
-int list_import_csv (list_ *list, char *filename) {
+int list_import_csv (list_ *list, char *filename, char delimiter) {
 	FILE *f = NULL;
 	char buf[4096];
 	int i = 0, failed_rows = 0;
@@ -464,7 +473,7 @@ int list_import_csv (list_ *list, char *filename) {
 	fgets(buf, 4096, f);
 	for (i = 0; i < strlen(buf); i++) {
 		printf ("%i - %i\n", i, strlen(buf)-1);
-		if (buf[i] == ',' || i == (strlen(buf) - 1)) {
+		if (buf[i] == delimiter || i == (strlen(buf) - 1)) {
 			list_column_add (list, "Column");
 		}
 	}
@@ -483,7 +492,7 @@ int list_import_csv (list_ *list, char *filename) {
 		l = strlen(buf);
 		field_start = &(buf[0]);
 		for (i = 0; i < l; i++) {
-			if ((buf[i] == ',' || i == (l-1)) && col < list->nr_of_cols) {
+			if ((buf[i] == delimiter || i == (l-1)) && col < list->nr_of_cols) {
 				int read, write;
 				GError *error = NULL;
 				buf[i] = '\0';
@@ -642,7 +651,7 @@ int list_save (list_ *list, char *filename) {
 /****************************************************************************
  * Callbacks 
  ****************************************************************************/
-/* Tree and list callbacks */
+/* Tree and list */
 void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	GtkTreePath *path;
 	GtkTreeViewColumn *column;
@@ -658,9 +667,7 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	gtk_statusbar_msg ("Row %i, Column %i", row+1, col+1);
 }
 
-/* File open callbacks */
-
-/* Menu *********************************************************************/
+/* File open */
 void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
 	char *sb_message = NULL;
@@ -678,49 +685,11 @@ void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	}
 }
 
-void ui_file_import_csv_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
-	char *filename = NULL;
-	int rows = -1;
-	
-	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
-	
-	if (list_import_csv (list, filename) == -1) {
-		gtk_error_dialog ("Not a correct Comma Separated file '%s'", filename);
-	} else {
-		gtk_statusbar_msg ("File %s imported. %i rows read.", filename, list->nr_of_rows, rows);
-	}
-}
-
-void ui_menu_file_import_csv_cb (void) {
-	GtkWidget *win_file_open;
-
-	win_file_open = gtk_file_selection_new ("Open file");
-	
-    g_signal_connect (
-			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
-			"clicked", 
-			G_CALLBACK (ui_file_import_csv_btn_ok_cb), 
-			(gpointer) win_file_open);
-    g_signal_connect_swapped (
-			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
-			"clicked", 
-			G_CALLBACK (gtk_widget_destroy), 
-			G_OBJECT (win_file_open));
-    g_signal_connect_swapped (
-			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->cancel_button),
-			"clicked", 
-			G_CALLBACK (gtk_widget_destroy), 
-			G_OBJECT (win_file_open));
-	
-	gtk_widget_show (win_file_open);
-}
-
-
 void ui_menu_file_open_cb (void) {
 	GtkWidget *win_file_open;
 
 	win_file_open = gtk_file_selection_new ("Open file");
-	
+	/* FIXME: Use gtk_dialog_add_buttons and gtk_dialog_run */
     g_signal_connect (
 			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
 			"clicked", 
@@ -740,6 +709,92 @@ void ui_menu_file_open_cb (void) {
 	gtk_widget_show (win_file_open);
 }
 
+/* File import */
+void ui_file_import_csv_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
+	char *filename = NULL;
+	char *delimiter_string = NULL;
+	int rows = -1;
+	
+	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
+	
+	delimiter_string = gtk_input_dialog ("Enter a single character which delimits the fields in the file", ",");
+	if (list_import_csv (list, filename, ',') == -1) {
+		gtk_error_dialog ("Not a correct Comma Separated file '%s'", filename);
+	} else {
+		gtk_statusbar_msg ("File %s imported. %i rows read.", filename, list->nr_of_rows, rows);
+	}
+}
+
+void ui_file_import_delimiter_comma_cb (GtkWidget *radio, import_ *import) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
+		import->delimiter = ',';
+	}
+}
+
+void ui_file_import_delimiter_tab_cb (GtkWidget *radio, import_ *import) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
+		import->delimiter = '\t';
+	}
+}
+
+void ui_menu_file_import_csv_cb (void) {
+	GtkWidget *dia_file_import;
+	GtkWidget *vbox;
+	GtkWidget *radio_comma, *radio_tab;
+	import_ *import;
+
+	import = malloc(sizeof(import_));
+	import->delimiter = ',';
+
+	dia_file_import = gtk_file_chooser_dialog_new (
+			"Import character separated file",
+			GTK_WINDOW(win_main),
+			GTK_FILE_CHOOSER_ACTION_OPEN, 
+			NULL);
+	gtk_dialog_add_buttons (
+			GTK_DIALOG(dia_file_import),
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, 
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
+			NULL);
+	
+	/* Build options widget */
+	radio_comma = gtk_radio_button_new_with_mnemonic (NULL, "_Comma separated");
+	radio_tab = gtk_radio_button_new_with_mnemonic_from_widget (
+			GTK_RADIO_BUTTON(radio_comma),
+			"_Tab separated");
+	gtk_signal_connect (
+			GTK_OBJECT(radio_comma), 
+			"toggled",
+			GTK_SIGNAL_FUNC(ui_file_import_delimiter_comma_cb),
+			import);
+	gtk_signal_connect (
+			GTK_OBJECT(radio_tab), 
+			"toggled",
+			GTK_SIGNAL_FUNC(ui_file_import_delimiter_tab_cb),
+			import);
+			
+	vbox = gtk_vbox_new (FALSE, 3);
+	gtk_box_pack_start (GTK_BOX(vbox), radio_comma, FALSE, FALSE, 3);
+	gtk_box_pack_start (GTK_BOX(vbox), radio_tab, FALSE, FALSE, 3);
+
+	gtk_widget_show_all (vbox);
+
+	/* Prepare import dialog and show */
+	gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER(dia_file_import), vbox);
+
+	if (gtk_dialog_run(GTK_DIALOG(dia_file_import)) == GTK_RESPONSE_ACCEPT) {
+		printf ("%c\n", import->delimiter);
+		import->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_import)));
+		list_import_csv (list, import->filename, import->delimiter);
+		free (import->filename);
+	}
+
+	gtk_widget_destroy (dia_file_import);
+
+	free (import);
+}
+
+/* File save */
 void ui_file_save_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
 	
@@ -750,13 +805,13 @@ void ui_file_save_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	gtk_statusbar_msg ("File '%s' saved.", filename);
 }
 
-
 void ui_menu_file_save_cb (void) {
 	GtkWidget *win_file_save;
 
 	if (list->filename == NULL) {
 		win_file_save = gtk_file_selection_new ("Save file");
 		
+		/* FIXME: Use gtk_dialog_add_buttons and gtk_dialog_run */
 		g_signal_connect (
 				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
 				"clicked", 
@@ -779,6 +834,7 @@ void ui_menu_file_save_cb (void) {
 	}
 }
 
+/* File save as... */
 void ui_menu_file_save_as_cb (void) {
 	char *old_filename;
 
@@ -788,6 +844,7 @@ void ui_menu_file_save_as_cb (void) {
 	list->filename = old_filename;
 }
 
+/* Column menu options */
 void ui_menu_column_add_cb (void) {
 	char *column_name = NULL;
 	
@@ -820,6 +877,7 @@ void ui_menu_column_delete_cb (void) {
 	list_column_delete (list, column);
 }
 
+/* Row menu options */
 void ui_menu_row_add_cb (void) {
 	list_row_add_empty (list);
 }
@@ -840,6 +898,7 @@ void ui_menu_row_delete_cb (void) {
 	}
 }
 
+/* Debugging menu items */
 void ui_menu_debug_addtestdata_cb (void) {
 	int col, row;
 	char *col_headers[] = {
