@@ -46,6 +46,7 @@
 /****************************************************************************/
 
 typedef struct list_ {
+	char *title;
 	char *filename;
 	GtkTreeView *treeview;
 	GtkListStore *liststore;
@@ -85,11 +86,13 @@ int list_import_csv (list_ *list, char *filename, char delimiter);
 void ui_file_export_ps_portrait_cb (GtkWidget *radio, export_ *export);
 void ui_file_export_ps_landscape_cb (GtkWidget *radio, export_ *export);
 int list_export_ps (list_ *list, char *filename, int orientation);
+int list_export_html (list_ *list, char *filename);
 int list_load (list_ *list, char *filename);
 int list_save (list_ *list, char *filename);
 /* Menu callback functions */
 void ui_menu_file_import_csv_cb (void);
 void ui_menu_file_export_ps_cb (void);
+void ui_menu_file_export_html_cb (void);
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
 void ui_menu_file_save_as_cb (void);
@@ -121,6 +124,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/File/Import/_Character Separated" , NULL , ui_menu_file_import_csv_cb   , 0 , "<Item>"                        },
 	{ "/File/_Export"                     , NULL , NULL                         , 0 , "<Branch>"                      },
 	{ "/File/Export/_Postscript"          , NULL , ui_menu_file_export_ps_cb    , 0 , "<Item>"                        },
+	{ "/File/Export/_Html"                , NULL , ui_menu_file_export_html_cb  , 0 , "<Item>"                        },
 	{ "/File/sep1"                        , NULL , NULL                         , 0 , "<Separator>"                   },
 	{ "/File/_Quit"                       , NULL , ui_menu_file_quit_cb         , 0 , "<StockItem>", GTK_STOCK_QUIT   },
 	{ "/_Edit"                            , NULL , NULL                         , 0 , "<Branch>"                      },
@@ -146,6 +150,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 
 static gint ui_nmenu_items = sizeof (ui_menu_items) / sizeof (ui_menu_items[0]);
 GtkWidget *win_main;
+GtkWidget *lbl_listtitle;
 guint sb_context_id;
 GtkWidget *sb_status;
 
@@ -154,6 +159,10 @@ list_ *list = NULL;
 /****************************************************************************
  * gtk_input_dialog
  ****************************************************************************/
+void gtk_input_dialog_entry_activate_cb (GtkWidget *entry, GtkDialog *dia_input) {
+	gtk_dialog_response (GTK_DIALOG(dia_input), GTK_RESPONSE_ACCEPT);
+}
+
 char *gtk_input_dialog (char *message, char *prefill) {
 	GtkWidget *dia_input;
 	GtkWidget *ent_input;
@@ -170,6 +179,11 @@ char *gtk_input_dialog (char *message, char *prefill) {
 	
 	ent_input = gtk_entry_new ();
 	gtk_entry_set_text (GTK_ENTRY(ent_input), prefill);
+	g_signal_connect (
+		ent_input,
+		"activate",
+		(GCallback) gtk_input_dialog_entry_activate_cb,
+		dia_input);
 
 	gtk_box_pack_start (GTK_BOX(GTK_DIALOG(dia_input)->vbox), GTK_WIDGET(ent_input), FALSE, TRUE, 0);
 	
@@ -457,11 +471,28 @@ void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
 	list->modified = TRUE;
 }
 
+void list_title_set (char *title) {
+	char *title_markup, *title_win;
+	
+	list->title = strdup(title);
+	
+	title_markup = malloc(sizeof(char) * (18 + strlen(title + 1)));
+	sprintf (title_markup, "<big><b>%s</b></big>", title);
+	gtk_label_set_markup (GTK_LABEL(lbl_listtitle), title_markup);
+	free (title_markup);
+
+	title_win = malloc(sizeof(char) * (13 + strlen(title)));
+	sprintf (title_win, "%s - Listpatron", title);
+	gtk_window_set_title (GTK_WINDOW(win_main), title_win);
+	free (title_win);
+
+}
 list_ *list_create (void) {
 	list_ *list = NULL;
 	GtkTreeSelection *treeselection;
 	list = malloc(sizeof(list_));
 
+	list->title      = strdup("New list");
 	list->filename   = NULL;
 	list->treeview   = NULL;
 	list->liststore  = NULL;
@@ -663,6 +694,19 @@ newpath\n\
 
 	free (orientation_str);
 	
+	return (0);
+}
+
+int list_export_html (list_ *list, char *filename) {
+	FILE *f;
+
+	if ((f = fopen (filename, "w")) == FALSE) {
+		return (-1);
+	}
+
+
+	fclose (f);
+
 	return (0);
 }
 
@@ -1068,6 +1112,30 @@ void ui_menu_file_export_ps_cb (void) {
 	free (export);
 }
 
+void ui_menu_file_export_html_cb (void) {
+	GtkWidget *dia_file_export;
+	char *filename;
+
+	dia_file_export = gtk_file_chooser_dialog_new (
+			"Export HTML file",
+			GTK_WINDOW(win_main),
+			GTK_FILE_CHOOSER_ACTION_SAVE, 
+			NULL);
+	gtk_dialog_add_buttons (
+			GTK_DIALOG(dia_file_export),
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
+			NULL);
+	
+	if (gtk_dialog_run(GTK_DIALOG(dia_file_export)) == GTK_RESPONSE_ACCEPT) {
+		filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_export)));
+		list_export_html (list, filename);
+		free (filename);
+	}
+
+	gtk_widget_destroy (dia_file_export);
+}
+
 /* File save */
 void ui_file_save_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
@@ -1106,36 +1174,7 @@ void ui_menu_file_save_cb (void) {
 		}
 	}
 
-	printf ("ui_menu_file_save\n");
-
 	list_save (list, list->filename);
-
-//	GtkWidget *win_file_save;
-//
-//	if (list->filename == NULL) {
-//		win_file_save = gtk_file_selection_new ("Save file");
-//		
-//		/* FIXME: Use gtk_dialog_add_buttons and gtk_dialog_run */
-//		g_signal_connect (
-//				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
-//				"clicked", 
-//				G_CALLBACK (ui_file_save_btn_ok_cb), 
-//				(gpointer) win_file_save);
-//		g_signal_connect_swapped (
-//				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
-//				"clicked", 
-//				G_CALLBACK (gtk_widget_destroy), 
-//				G_OBJECT (win_file_save));
-//		g_signal_connect_swapped (
-//				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->cancel_button),
-//				"clicked", 
-//				G_CALLBACK (gtk_widget_destroy), 
-//				G_OBJECT (win_file_save));
-//		
-//		gtk_widget_show (win_file_save);
-//	} else {
-//		list_save (list, list->filename);
-//	}
 }
 
 /* File save as... */
@@ -1205,9 +1244,17 @@ void ui_menu_column_rename_cb (void) {
 	GtkTreePath *path;
 	GtkTreeViewColumn *column;
 	
-	column_name = gtk_input_dialog ("Enter the column name", "Col");
+	gtk_tree_view_get_cursor (list->treeview, &path, &column);
+	
+	if (column == NULL) {
+		return;
+	}
+
+	column_name = gtk_input_dialog (
+			"Enter the column name", 
+			(char *)gtk_tree_view_column_get_title(column));
+
 	if (column_name) {
-		gtk_tree_view_get_cursor (list->treeview, &path, &column);
 		gtk_tree_view_column_set_title (column, column_name);
 		free (column_name);
 	}
@@ -1432,6 +1479,37 @@ void ui_menu_help_about_cb (void) {
 
 }
 
+void ui_listtitle_click_cb (GtkWidget *widget, GdkEventButton *event, gpointer *data) {
+	if (event->type == GDK_2BUTTON_PRESS) {
+		char *new_title;
+		new_title = gtk_input_dialog (
+				"Enter a name for the list",
+				list->title);
+		if (new_title != NULL) {
+			list_title_set (new_title);
+		}
+    }
+}
+
+GtkWidget *ui_create_listtitle (void) {
+	GtkWidget *eventbox;
+	
+	eventbox = gtk_event_box_new ();
+	lbl_listtitle = gtk_label_new (NULL);
+
+	gtk_container_add (GTK_CONTAINER(eventbox), lbl_listtitle);
+	
+	g_signal_connect (
+			eventbox, 
+			"button-press-event", 
+			(GCallback) ui_listtitle_click_cb, 
+			NULL);
+	
+	list_title_set ("Untitled");
+	
+	return (eventbox);
+}
+
 /****************************************************************************
  * Main
  ****************************************************************************/
@@ -1454,6 +1532,7 @@ int main (int argc, char *argv[]) {
 	gtk_container_add (GTK_CONTAINER(win_scroll), GTK_WIDGET(list->treeview));
 	
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menubar(win_main)), FALSE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_listtitle()), FALSE, TRUE, 0);
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(win_scroll), TRUE, TRUE, 0);
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_statusbar(win_main)), FALSE, TRUE, 0);
 
