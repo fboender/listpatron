@@ -20,9 +20,9 @@ Table of contents
 
 	ListPatron is a GTK2 application which aids in the keeping of lists of
 	information like books, movies, todo's, addresses, etc. Lists are freely 
-	definable by the user and can be searched, sorted, exported
-	and (in the future) filtered. Reports can be created from information in
-	various formats. 
+	definable by the user and can be searched, sorted, exported and (in the 
+	future) filtered. Reports can be created from information in various 
+	formats. 
 
 2. Installation
 
@@ -46,9 +46,9 @@ Table of contents
 		* Run "make"
 		* Run "make install"
 
-		ListPatron will be installed in the default directories (/usr/local/foo)
+		ListPatron will be installed in the default directories (/usr/local/*)
 		
-		To uninstall, run "make uninstall" 
+		To uninstall, run "make uninstall".
 		
 		You can run ListPatron by running "/usr/local/bin/listpatron" or simply
 		"listpatron" if the directory is in your path.
@@ -62,13 +62,18 @@ Table of contents
 	If you are thinking about contributing code to this project, please
 	contact me. I'll set up CVS access so you can get the latest sources.
 	You may also want to mention what it is you want to work on. 
+
+	If you've got anything else to contribute to this project (icons, splash
+	screens, logo's, documentation, bug-reports, testing, building on a wide
+	variety of platforms, etc, etc), please do not hesitate about mailing me.
+	Even if you're not sure about what you can contribute to the project. 
 	
 4. Legal stuff
 
 	ListPatron is Copyright by Ferry Boender, licensed under the General Public
-	License (GPL)
+	License (GPL), yada yada yada.
 
-	Copyright (C), 2004 by Ferry Boender
+	Copyright (C), 2004-2005 by Ferry Boender
 
 	This program is free software; you can redistribute it and/or modify it
 	under the terms of the GNU General Public License as published by the Free
