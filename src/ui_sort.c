@@ -77,13 +77,45 @@ void ui_sort_selection_changed_cb(GtkTreeSelection *treeselection, struct ui_sor
 }
 
 void ui_sort_moveup_clicked_cb(GtkButton *button, struct ui_sort_ *sort) {
-	printf("This button is not implemented yet (use Drag & Drop). If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
-	gtk_error_dialog("This button is not implemented yet (use Drag & Drop). If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	GtkTreeIter iter_a, iter_b;
+	GtkTreePath *path_a, *path_b;
+	
+	if (!gtk_tree_selection_get_selected(sort->treeselection, NULL, &iter_a)) {
+		fprintf(stderr, "Strange. No selection?\n");
+		return;
+	}
+
+	path_a = gtk_tree_model_get_path(GTK_TREE_MODEL(sort->ls_sort), &iter_a);
+	path_b = path_a;
+
+	if (!gtk_tree_path_prev(path_b)) {
+		path_b = path_a;
+	}
+
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(sort->ls_sort), &iter_b, path_b);
+	
+	gtk_list_store_swap(sort->ls_sort, &iter_a, &iter_b);
+
 }
 
 void ui_sort_movedown_clicked_cb(GtkButton *button, struct ui_sort_ *sort) {
-	printf("This button is not implemented yet (use Drag & Drop). If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
-	gtk_error_dialog("This button is not implemented yet (use Drag & Drop). If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	GtkTreeIter iter_a, iter_b;
+	GtkTreePath *path_a, *path_b;
+	
+	/* Doing this the hard way because you cant copy an iter, so we can't use iter_next() */
+
+	if (!gtk_tree_selection_get_selected(sort->treeselection, NULL, &iter_a)) {
+		fprintf(stderr, "Strange. No selection?\n");
+		return;
+	}
+
+	path_a = gtk_tree_model_get_path(GTK_TREE_MODEL(sort->ls_sort), &iter_a);
+	path_b = path_a;
+
+	gtk_tree_path_next(path_b); /* Why doesn't this return true/false? */
+	if (gtk_tree_model_get_iter(GTK_TREE_MODEL(sort->ls_sort), &iter_b, path_b)) {
+		gtk_list_store_swap(sort->ls_sort, &iter_a, &iter_b);
+	}
 }
 
 void ui_sort_sortasc_toggled_cb(GtkWidget *radio, ui_sort_ *sort) {
