@@ -356,7 +356,6 @@ void ui_menu_row_add_cb(void) {
 	GtkTreePath *path = NULL;
 	
 	iterstr = list_row_add_empty(list);
-	printf("%s\n", iterstr);
 	if (iterstr != NULL) {
 		/* Focus the new row */
 		path = gtk_tree_path_new_from_string(iterstr);
@@ -388,7 +387,6 @@ void ui_menu_row_delete_cb(void) {
 	GtkTreePath *path = NULL;
 	
 	selection = gtk_tree_view_get_selection(treeview);
-	printf("Selection: %p\n", selection);
 	if (selection != NULL) {
 		gtk_tree_selection_selected_foreach(selection, gtk_tree_selection_get_references, &row_refs);
 		if (row_refs != NULL) {
@@ -405,13 +403,14 @@ void ui_menu_row_delete_cb(void) {
 			g_list_free(row_refs);
 
 			/* Focus row */
-			printf("%p\n", path);
 			if (path != NULL) {
 				gchar *pathstr = NULL;
+
 				pathstr = gtk_tree_path_to_string(path);
-				printf("%s\n", pathstr);
+
 				gtk_tree_view_set_cursor(treeview, path, NULL, FALSE);
 				gtk_widget_grab_focus(GTK_WIDGET(treeview));
+
 				gtk_tree_path_free(path);
 			}
 		}
