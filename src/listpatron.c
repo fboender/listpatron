@@ -442,12 +442,14 @@ void ui_menu_row_delete_cb (void) {
 }
 
 void ui_menu_debug_addtestdata_cb (void) {
-	int testdata_cols = 3, testdata_rows = 100;
+	int testdata_cols = 5, testdata_rows = 50;
 	int col, row;
 	char *col_headers[] = {
 		"Col A", 
 		"Col B", 
-		"Col C"
+		"Col C", 
+		"Col D", 
+		"Col E"
 	};
 	char **col_vals;
 	
@@ -462,7 +464,7 @@ void ui_menu_debug_addtestdata_cb (void) {
 			char *value = NULL;
 			
 			value = malloc(sizeof(char) * (strlen(col_headers[col] + 2)));
-			sprintf (value, "%s-%i", col_headers[col], row);
+			sprintf (value, "%s-%02i", col_headers[col], row);
 
 			col_vals[col] = value;
 		}
