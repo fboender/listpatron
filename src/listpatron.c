@@ -16,6 +16,7 @@ typedef struct list_ {
 /****************************************************************************
  * Prototyping
  ****************************************************************************/
+int my_gtk_tree_view_get_column_nr (GtkTreeView *treeview, GtkTreeViewColumn *column);
 /* List handling functions */
 void list_column_add (list_ *list, char *title);
 void list_column_delete (list_ *list);
@@ -100,6 +101,25 @@ char *gtk_input_dialog (char *message, char *prefill) {
 	return (response);
 }
 
+int my_gtk_tree_view_get_column_nr (GtkTreeView *treeview, GtkTreeViewColumn *column) {
+	GList *columns, *list_iter;
+	int col, i;
+
+	/* Get column number */
+	columns = gtk_tree_view_get_columns (list->treeview);
+	list_iter = columns;
+	for (i = 0; i < g_list_length(columns); i++) {
+		if (list_iter->data == column) {
+			col = i; /* OPTIMIZE: No need to assign I to COL */
+			break;
+		}
+		list_iter = g_list_next (list_iter);
+	}
+	g_list_free (columns);
+
+	return (col);
+}
+		
 /****************************************************************************
  * List handling functions
  ****************************************************************************/
@@ -170,6 +190,7 @@ void list_column_add (list_ *list, char *title) {
 
 	gtk_tree_view_set_model (list->treeview, GTK_TREE_MODEL(list->liststore));
 	
+	list->nr_of_cols++;
 }
 
 void list_column_delete (list_ *list) {
@@ -195,7 +216,6 @@ void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
 
 	gtk_list_store_append (list->liststore, &treeiter);
 	for (i = 0; i < nr_of_cols; i++) {
-		printf ("list_row_add: values[i] = %s\n", values[i]);
 		gtk_list_store_set (list->liststore, &treeiter, i, values[i], -1);
 	}
 }
@@ -283,26 +303,16 @@ void ui_menu_column_delete_cb (void) {
 
 /* List *********************************************************************/
 void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data) {
-	GList *columns, *list_iter;
 	GtkTreePath *path;
 	GtkTreeViewColumn *column;
 	gchar *old_text;
 	GtkTreeIter iter;
-	int col, i;
+	int col;
 	
 	/* Get column number */
 	gtk_tree_view_get_cursor (list->treeview, &path, &column);
 	path = gtk_tree_path_new_from_string (path_string);
-	columns = gtk_tree_view_get_columns (list->treeview);
-	list_iter = columns;
-	for (i = 0; i < g_list_length(columns); i++) {
-		if (list_iter->data == column) {
-			col = i;
-			break;
-		}
-		list_iter = g_list_next (list_iter);
-	}
-	g_list_free (columns);
+	col = my_gtk_tree_view_get_column_nr (list->treeview, column);
 	
 	/* Set new text */
 	gtk_tree_model_get_iter (GTK_TREE_MODEL(list->liststore), &iter, path);
