@@ -40,6 +40,8 @@
 #define _TEST_COLS 5
 #define _TEST_ROWS 50
 
+#define ORIENT_PORTRAIT 0
+#define ORIENT_LANDSCAPE 1
 
 /****************************************************************************/
 
@@ -55,6 +57,11 @@ typedef struct import_ {
 	char *filename;
 	char delimiter;
 } import_;
+
+typedef struct export_ {
+	char *filename;
+	int orientation;
+} export_;
 
 /* Character Separated Value's Import options */
 #define IMPORT_CSV_HEADER         1 << 0 /* First row contains column header titles */
@@ -74,10 +81,14 @@ void list_row_add_empty (list_ *list);
 void list_row_add (list_ *list, int nr_of_cols, char *values[]);
 list_ *list_create (void);
 int list_import_csv (list_ *list, char *filename, char delimiter);
+void ui_file_export_ps_portrait_cb (GtkWidget *radio, export_ *export);
+void ui_file_export_ps_landscape_cb (GtkWidget *radio, export_ *export);
+int list_export_ps (list_ *list, char *filename, int orientation);
 int list_load (list_ *list, char *filename);
 int list_save (list_ *list, char *filename);
 /* Menu callback functions */
 void ui_menu_file_import_csv_cb (void);
+void ui_menu_file_export_ps_cb (void);
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
 void ui_menu_file_save_as_cb (void);
@@ -105,8 +116,9 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/File/_Save"          , NULL, ui_menu_file_save_cb        , 0, "<StockItem>" , GTK_STOCK_SAVE  },
 	{ "/File/Save _As"       , NULL, ui_menu_file_save_as_cb     , 0, "<Item>"                        },
 	{ "/File/_Import"        , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/File/Import/_Character Separated"        , NULL, ui_menu_file_import_csv_cb , 0, "<Item>"                      },
-	{ "/File/_Export"        , NULL, NULL                        , 0, "<Item>"                        },
+	{ "/File/Import/_Character Separated"        , NULL, ui_menu_file_import_csv_cb , 0, "<Item>" },
+	{ "/File/_Export"        , NULL, NULL                        , 0, "<Branch>"                      },
+	{ "/File/Export/_Postscript" , NULL, ui_menu_file_export_ps_cb , 0, "<Item>" },
 	{ "/File/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
 	{ "/File/_Quit"          , NULL, gtk_main_quit               , 0, "<StockItem>" , GTK_STOCK_QUIT  },
 	{ "/_Edit"               , NULL, NULL                        , 0, "<Branch>"                      },
@@ -472,7 +484,6 @@ int list_import_csv (list_ *list, char *filename, char delimiter) {
 	/* Create columns */
 	fgets(buf, 4096, f);
 	for (i = 0; i < strlen(buf); i++) {
-		printf ("%i - %i\n", i, strlen(buf)-1);
 		if (buf[i] == delimiter || i == (strlen(buf) - 1)) {
 			list_column_add (list, "Column");
 		}
@@ -523,6 +534,123 @@ int list_import_csv (list_ *list, char *filename, char delimiter) {
 	fclose (f);
 
 	return (failed_rows);
+}
+
+int list_export_ps (list_ *list, char *filename, int orientation) {
+	GtkTreeIter iter;
+	gchar *row_data;
+	GList *columns = NULL, *column_iter = NULL;
+	int i;
+
+	FILE *f;
+	int page_height, page_width, page_top;
+	int margin_top, margin_left, margin_bottom;
+	int font_size, line_spacing;
+	int pos_y, pos_x;
+	char *orientation_str;
+	
+	switch (orientation) {
+		case ORIENT_PORTRAIT:
+			orientation_str = strdup("Portrait");
+			page_height = 842;
+			page_width  = 585;
+			break;
+		case ORIENT_LANDSCAPE:
+			orientation_str = strdup("Landscape");
+			page_height = 585;
+			page_width  = 842;
+			break;
+		default:
+			orientation_str = strdup("Unknown");
+			gtk_error_dialog ("Unknown orientation");
+			break;
+	}
+	
+	page_top = 842;
+	
+	margin_top = 0;
+	margin_left = 0;
+	margin_bottom = 0;
+	font_size = 8;
+	line_spacing = 0;
+	
+	pos_y = page_top - margin_top;
+	pos_x = 0 + margin_left;
+	
+	if (!(f = fopen (filename, "w"))) {
+		gtk_error_dialog ("Can't open file %s for writing", filename);
+		return (-1);
+	}
+//<</Orientation 0>>setpagedevice\n
+	
+	/* Header */
+	fprintf (f, "\
+%%!PS-Adobe-2.1\n\
+%%%%Orientation: %s\n\
+%%%%DocumentPaperSizes: a4\n\
+%%%%EndComments\n\
+<</Orientation %i>>setpagedevice\n\
+/Times-Roman findfont %i scalefont setfont\n\
+/vpos %i def\n",
+	orientation_str,
+	orientation,
+	font_size,
+	page_top - margin_top - font_size);
+	
+	/* Functions : newline */
+	fprintf (f, "\
+/newline {\n\
+/vpos vpos %i sub def\n\
+%i vpos moveto\n\
+} def\n", 
+	font_size + line_spacing,
+	margin_left);
+
+	/* Functions : newpage */
+	fprintf (f, "\
+/newpage {\n\
+/vpos %i def\n\
+showpage\n\
+%i vpos moveto\n\
+} def\n",
+	page_top - margin_top - font_size,
+	margin_left);
+	
+	fprintf (f, "\
+newpath\n\
+%i vpos moveto\n\
+", margin_left);
+
+	columns = gtk_tree_view_get_columns (list->treeview);
+	column_iter = columns;
+	while (column_iter) {
+		column_iter = column_iter->next;
+	}
+
+	gtk_tree_model_get_iter_root (GTK_TREE_MODEL(list->liststore), &iter);
+	do {
+		for (i = 0; i < list->nr_of_cols; i++) {
+			gtk_tree_model_get (GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
+			if (i == 1) {
+				fprintf (f, "(%s) show\n", row_data);
+				pos_y -= (font_size + line_spacing);
+				if (pos_y < ((page_top - page_height) + (margin_bottom + font_size))) {
+					pos_y = page_top - margin_top - font_size;
+					fprintf (f, "newpage\n");
+				} else {
+					fprintf (f, "newline\n");
+				}
+			}
+			free (row_data);
+		}
+	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
+	fprintf (f, "showpage\n");
+
+	fclose (f);
+
+	free (orientation_str);
+	
+	return (0);
 }
 
 int list_load (list_ *list, char *filename) {
@@ -783,7 +911,6 @@ void ui_menu_file_import_csv_cb (void) {
 	gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER(dia_file_import), vbox);
 
 	if (gtk_dialog_run(GTK_DIALOG(dia_file_import)) == GTK_RESPONSE_ACCEPT) {
-		printf ("%c\n", import->delimiter);
 		import->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_import)));
 		list_import_csv (list, import->filename, import->delimiter);
 		free (import->filename);
@@ -792,6 +919,74 @@ void ui_menu_file_import_csv_cb (void) {
 	gtk_widget_destroy (dia_file_import);
 
 	free (import);
+}
+
+void ui_file_export_ps_portrait_cb (GtkWidget *radio, export_ *export) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
+		export->orientation = ORIENT_PORTRAIT;
+	}
+}
+
+void ui_file_export_ps_landscape_cb (GtkWidget *radio, export_ *export) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
+		export->orientation = ORIENT_LANDSCAPE;
+	}
+}
+
+void ui_menu_file_export_ps_cb (void) {
+	GtkWidget *dia_file_export;
+	GtkWidget *vbox;
+	GtkWidget *radio_landscape, *radio_portrait;
+	export_ *export;
+
+	export = malloc(sizeof(export_));
+	export->orientation = ORIENT_PORTRAIT;
+
+	dia_file_export = gtk_file_chooser_dialog_new (
+			"Export PostScript file",
+			GTK_WINDOW(win_main),
+			GTK_FILE_CHOOSER_ACTION_SAVE, 
+			NULL);
+	gtk_dialog_add_buttons (
+			GTK_DIALOG(dia_file_export),
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
+			NULL);
+	
+	/* Build options widget */
+	radio_portrait = gtk_radio_button_new_with_mnemonic (NULL, "_Portrait");
+	radio_landscape = gtk_radio_button_new_with_mnemonic_from_widget (
+			GTK_RADIO_BUTTON(radio_portrait),
+			"_Landscape");
+	gtk_signal_connect (
+			GTK_OBJECT(radio_portrait), 
+			"toggled",
+			GTK_SIGNAL_FUNC(ui_file_export_ps_portrait_cb),
+			export);
+	gtk_signal_connect (
+			GTK_OBJECT(radio_landscape), 
+			"toggled",
+			GTK_SIGNAL_FUNC(ui_file_export_ps_landscape_cb),
+			export);
+			
+	vbox = gtk_vbox_new (FALSE, 3);
+	gtk_box_pack_start (GTK_BOX(vbox), radio_portrait, FALSE, FALSE, 3);
+	gtk_box_pack_start (GTK_BOX(vbox), radio_landscape, FALSE, FALSE, 3);
+
+	gtk_widget_show_all (vbox);
+
+	/* Prepare import dialog and show */
+	gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER(dia_file_export), vbox);
+
+	if (gtk_dialog_run(GTK_DIALOG(dia_file_export)) == GTK_RESPONSE_ACCEPT) {
+		export->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_export)));
+		list_export_ps (list, export->filename, export->orientation);
+		free (export->filename);
+	}
+
+	gtk_widget_destroy (dia_file_export);
+
+	free (export);
 }
 
 /* File save */
@@ -1113,7 +1308,7 @@ int main (int argc, char *argv[]) {
 	gtk_container_add (GTK_CONTAINER(win_main), vbox_main);
 
 	gtk_widget_show_all (win_main);
-
+	
 	gtk_main();
 	
 	return (0);
