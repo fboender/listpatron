@@ -623,13 +623,13 @@ void list_title_set (char *title) {
 	
 	list->title = strdup(title);
 	
-	title_markup = malloc(sizeof(char) * (18 + strlen(title + 1)));
-	sprintf (title_markup, "<big><b>%s</b></big>", title);
+	title_markup = malloc(sizeof(char) * (18 + strlen(list->title) + 1));
+	sprintf (title_markup, "<big><b>%s</b></big>", list->title);
 	gtk_label_set_markup (GTK_LABEL(lbl_listtitle), title_markup);
 	free (title_markup);
 
-	title_win = malloc(sizeof(char) * (13 + strlen(title)));
-	sprintf (title_win, "%s - Listpatron", title);
+	title_win = malloc(sizeof(char) * (13 + strlen(list->title) + 1));
+	sprintf (title_win, "%s - Listpatron", list->title);
 	gtk_window_set_title (GTK_WINDOW(win_main), title_win);
 	free (title_win);
 
@@ -640,7 +640,7 @@ list_ *list_create (void) {
 	list = malloc(sizeof(list_));
 
 	list->version     = strdup("0.1");
-	list->title       = strdup(" !");
+	list->title       = strdup("");
 	list->author      = strdup("");
 	list->description = strdup("");
 	list->keywords    = strdup("");
@@ -1710,6 +1710,7 @@ void ui_listtitle_click_cb (GtkWidget *widget, GdkEventButton *event, gpointer *
 		if (new_title != NULL) {
 			list_title_set (new_title);
 		}
+		free (new_title);
     }
 }
 
