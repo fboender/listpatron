@@ -61,6 +61,8 @@ list_ *list_create (void);
 int list_load (list_ *list, char *filename);
 int list_save (list_ *list, char *filename);
 /* Callback functions */
+void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data);
+
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
 void ui_menu_file_save_as_cb (void);
@@ -109,6 +111,8 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 };
 
 static gint ui_nmenu_items = sizeof (ui_menu_items) / sizeof (ui_menu_items[0]);
+guint sb_context_id;
+GtkWidget *sb_status;
 
 list_ *list = NULL;
 
@@ -346,6 +350,11 @@ list_ *list_create (void) {
 	list->nr_of_rows = 0;
 
 	list->treeview  = GTK_TREE_VIEW (gtk_tree_view_new());
+	gtk_signal_connect (
+			GTK_OBJECT(list->treeview),
+			"cursor-changed",
+			G_CALLBACK(ui_treeview_cursor_changed_cb),
+			NULL);
 	
 	treeselection = gtk_tree_view_get_selection (GTK_TREE_VIEW(list->treeview));
 	gtk_tree_selection_set_mode (treeselection, GTK_SELECTION_SINGLE);
@@ -448,15 +457,42 @@ int list_save (list_ *list, char *filename) {
 /****************************************************************************
  * Callbacks 
  ****************************************************************************/
+/* Tree and list callbacks */
+void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
+	GtkTreePath *path;
+	GtkTreeViewColumn *column;
+	char *path_str;
+	int col, row;
+	char *sb_message;
+
+	gtk_tree_view_get_cursor (list->treeview, &path, &column);
+	path_str = gtk_tree_path_to_string (path);
+	row = atoi (path_str);
+
+	col = GPOINTER_TO_UINT(g_object_get_data (G_OBJECT(column), "col_nr"));
+
+	sb_message = malloc(sizeof(char) * (13 + 40 + 1));
+	sprintf (sb_message, "Row %i, Column %i", row+1, col+1);
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
+	free (sb_message);
+}
+
 /* File open callbacks */
 
 /* Menu *********************************************************************/
 void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
+	char *sb_message = NULL;
 	
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
 	list_load (list, filename);
+
+	sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
+	sprintf (sb_message, "File '%s' loaded.", filename);
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
+	free (sb_message);
+
 }
 
 void ui_menu_file_open_cb (void) {
@@ -485,10 +521,16 @@ void ui_menu_file_open_cb (void) {
 
 void ui_file_save_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
+	char *sb_message = NULL;
 	
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
 	list_save (list, filename);
+
+	sb_message = malloc(sizeof(char) * (14 + strlen(filename) + 1));
+	sprintf (sb_message, "File '%s' saved.", filename);
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
+	free (sb_message);
 }
 
 
@@ -565,7 +607,6 @@ void ui_menu_row_add_cb (void) {
 	list_row_add_empty (list);
 }
 
-
 void ui_menu_row_delete_cb (void) {
 	GtkTreePath *path;
 	GtkTreeViewColumn *column; /* Unused */
@@ -580,7 +621,6 @@ void ui_menu_row_delete_cb (void) {
 		
 		gtk_list_store_remove(GTK_LIST_STORE(list->liststore), &iter);
 	}
-	
 }
 
 void ui_menu_debug_addtestdata_cb (void) {
@@ -619,6 +659,8 @@ void ui_menu_debug_addtestdata_cb (void) {
 
 		free (col_vals);
 	}
+
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, "Added test data.");
 }
 
 void ui_menu_debug_addtestrows_cb (void) {
@@ -659,6 +701,8 @@ void ui_menu_debug_addtestrows_cb (void) {
 		free (col_vals);
 	}
 
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, "Added test rows.");
+	
 }
 
 /* List *********************************************************************/
@@ -704,6 +748,15 @@ GtkWidget *ui_create_menubar (GtkWidget *window) {
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
+GtkWidget *ui_create_statusbar (GtkWidget *window) {
+
+	sb_status = gtk_statusbar_new();
+	sb_context_id = gtk_statusbar_get_context_id(GTK_STATUSBAR (sb_status), "main");
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, "Ready.");
+
+	return (sb_status);
+}
+
 /****************************************************************************
  * Main
  ****************************************************************************/
@@ -728,6 +781,7 @@ int main (int argc, char *argv[]) {
 	
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menubar(win_main)), FALSE, TRUE, 0);
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(win_scroll), TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_statusbar(win_main)), FALSE, TRUE, 0);
 
 	gtk_container_add (GTK_CONTAINER(win_main), vbox_main);
 
