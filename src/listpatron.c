@@ -441,7 +441,7 @@ list_ *list_create (void) {
 			"cursor-changed",
 			G_CALLBACK(ui_treeview_cursor_changed_cb),
 			NULL);
-	
+	gtk_tree_view_set_rules_hint (GTK_TREE_VIEW(list->treeview), 1);
 	treeselection = gtk_tree_view_get_selection (GTK_TREE_VIEW(list->treeview));
 	gtk_tree_selection_set_mode (treeselection, GTK_SELECTION_SINGLE);
 	
