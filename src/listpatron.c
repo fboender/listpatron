@@ -617,8 +617,6 @@ void list_row_add(list_ *list, char *values[]) {
 	GtkTreeIter treeiter;
 	int i;
 
-	printf ("%i\n", sizeof(values));
-
 	if (!(list->nr_of_cols > 0)) {
 		return; /* Can't add a row to an empty list */
 	}
@@ -634,6 +632,32 @@ void list_row_add(list_ *list, char *values[]) {
 
 	list->nr_of_rows++;
 	list->modified = TRUE;
+}
+
+void list_row_delete(list_ *list, GList *row_refs) {
+	GList *iter = NULL;
+
+	assert(row_refs != NULL);
+
+	iter = row_refs;
+	while (iter != NULL) {
+		GtkTreePath *path;
+
+		path = gtk_tree_row_reference_get_path((GtkTreeRowReference*)iter->data);
+
+		if (path) {
+			GtkTreeIter iter;
+
+			if (gtk_tree_model_get_iter(GTK_TREE_MODEL(list->liststore), &iter, path)) {
+				gtk_list_store_remove(list->liststore, &iter);
+			}
+
+			gtk_tree_path_free(path);
+		}
+
+		list->nr_of_rows--;
+		iter = iter->next;
+	}
 }
 
 void list_title_set(char *title) {
@@ -1241,6 +1265,10 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 		col = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
 
 		gtk_statusbar_msg("Row %i, Column %i", row+1, col+1);
+
+		if (row == list->nr_of_rows-1) {
+			list_row_add_empty(list);
+		}
 	}
 }
 
@@ -1653,22 +1681,35 @@ void ui_menu_row_add_cb(void) {
 	list_row_add_empty(list);
 }
 
-void ui_menu_row_delete_cb(void) {
-	GtkTreePath *path;
-	GtkTreeViewColumn *column; /* Unused */
-	GtkTreeIter iter;
+void gtk_tree_selection_get_references(
+		GtkTreeModel *model,
+		GtkTreePath *path,
+		GtkTreeIter *iter,
+		gpointer data) {
+	GList **row_refs = data;
 
-	gtk_tree_view_get_cursor(treeview, &path, &column);
+	GtkTreeRowReference *row_ref;
+
+	row_ref = gtk_tree_row_reference_new(model, path);
+	*row_refs = g_list_append (*row_refs, row_ref);
+}
+
+void ui_menu_row_delete_cb(void) {
+	GtkTreeSelection *selection = NULL;
+	GList *row_refs = NULL;
+	GList *iter = NULL;
 	
-	if (path != NULL) { /* Row selected? */
-		if (!gtk_tree_model_get_iter(GTK_TREE_MODEL(list->liststore), &iter, path)) {
-			gtk_tree_path_free(path);
-			return;
-		}
-		
-		gtk_tree_path_free(path);
-		gtk_list_store_remove(GTK_LIST_STORE(list->liststore), &iter);
+	selection = gtk_tree_view_get_selection(treeview);
+
+	gtk_tree_selection_selected_foreach(selection, gtk_tree_selection_get_references, &row_refs);
+	list_row_delete(list, row_refs);
+
+	iter = row_refs;
+	while (iter != NULL) {
+		gtk_tree_row_reference_free(iter->data);
+		iter = iter->next;
 	}
+	g_list_free(row_refs);
 }
 
 /* Debugging menu items */
@@ -1819,6 +1860,7 @@ void dialog_about_btn_ok_cb(GtkWidget *widget, GtkWidget *win) {
 	gtk_widget_destroy(win);
 }
 
+
 GtkWidget *ui_create_tree_view(void) {
 	GtkTreeSelection *treeselection;
 
@@ -1828,9 +1870,11 @@ GtkWidget *ui_create_tree_view(void) {
 			"cursor-changed",
 			G_CALLBACK(ui_treeview_cursor_changed_cb),
 			NULL);
+
 	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(treeview), 1);
 	treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
-	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_SINGLE);
+//	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_SINGLE);
+	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_MULTIPLE);
 
 	return (GTK_WIDGET(treeview));
 }
