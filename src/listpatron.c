@@ -1547,12 +1547,49 @@ void ui_menu_file_save_cb(void) {
 
 /* File save as... */
 void ui_menu_file_save_as_cb(void) {
-	char *old_filename;
+		GtkWidget *dia_file_save;
+	int response;
+	char *filename;
 
-	old_filename = list->filename;
-	list->filename = NULL;
-	ui_menu_file_save_cb();
-	list->filename = old_filename;
+	assert (list->title != NULL);
+
+
+	if (list->filename != NULL) {
+		strdup (list->filename);
+	} else {
+		filename = malloc(sizeof(char) * (strlen(list->title) + 5));
+		sprintf (filename, "%s.lip", list->title);
+	}
+	
+	dia_file_save = gtk_file_chooser_dialog_new(
+			"Save",
+			GTK_WINDOW(win_main),
+			GTK_FILE_CHOOSER_ACTION_SAVE, 
+			NULL);
+	gtk_dialog_add_buttons(
+			GTK_DIALOG(dia_file_save),
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
+			NULL);
+	gtk_file_chooser_set_current_name (
+			GTK_FILE_CHOOSER(dia_file_save),
+			filename);
+
+	free (filename);
+	
+	response = gtk_dialog_run(GTK_DIALOG(dia_file_save));
+
+	if (response == GTK_RESPONSE_ACCEPT) {
+		list->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_save)));
+		gtk_widget_destroy(dia_file_save);
+	} else {
+		gtk_widget_destroy(dia_file_save);
+		return;
+	}
+
+	if (list->filename != NULL) {
+		list_save(list, list->filename);
+	}
 }
 
 void ui_menu_file_quit_cb(void) {
@@ -1731,9 +1768,6 @@ void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new
 	
 	/* Get column number */
 	gtk_tree_view_get_cursor(treeview, &path, &column);
-	if (path != NULL) {
-		gtk_tree_path_free(path);
-	}
 	col = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
 	
 	/* Set new text */
@@ -1748,6 +1782,10 @@ void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new
 	gtk_list_store_set(GTK_LIST_STORE(list->liststore), &iter, col, new_text, -1);
 
 	list->modified = TRUE;
+
+	if (path != NULL) {
+		gtk_tree_path_free(path);
+	}
 }
 
 
