@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<!DOCTYPE list SYSTEM "data/listpatron.dtd">
+<list>
+	<info>
+		<version>0.1</version>
+		<title>Boeken</title>
+		<author>F.Boender</author>
+		<description>A list of books in my posession.</description>
+		<keywords>books, authors</keywords>
+	</info>
+	<state>
+		<window>
+			<position>
+				<x>100</x>
+				<y>10</y>
+			</position>
+			<dimensions>
+				<width>500</width>
+				<height>300</height>
+			</dimensions>
+		</window>
+	</state>
+	<filters>
+		<filter>
+			<filtername>Good books</filtername>
+			<rule>
+				<columnname>Rating</columnname>
+				<predicate>larger than</predicate>
+				<value>3</value>
+			</rule>
+		</filter>
+		<filter>
+			<filtername>Unread Science Fiction books</filtername>
+			<rule>
+				<columnname>Genre</columnname>
+				<predicate>is</predicate>
+				<value>Sci-fi</value>
+			</rule>
+			<rule>
+				<columnname>Read</columnname>
+				<predicate>is</predicate>
+				<value>no</value>
+			</rule>
+		</filter>
+	</filters>
+	<sorts>
+		<sort>
+			<sortname>Author</sortname>
+			<sortcolumns>
+				<columnname sortposition="1" sortdirection="desc">Author</columnname>
+				<columnname sortposition="2" sortdirection="desc">Title</columnname>
+			</sortcolumns>
+		</sort>
+		<sort>
+			<sortname>Genre</sortname>
+			<sortcolumns>
+				<columnname sortposition="1" sortdirection="desc">Genre</columnname>
+				<columnname sortposition="2" sortdirection="desc">Author</columnname>
+				<columnname sortposition="3" sortdirection="desc">Series</columnname>
+			</sortcolumns>
+		</sort>
+	</sorts>
+	<reports>
+		<report>
+			<reportname>Unread Science Fiction books</reportname>
+			<reporttype>print</reporttype>
+			<filtername>Unread Science Fiction books</filtername>
+			<sortname>Author</sortname>
+		</report>
+	</reports>
+	<header>
+		<columnname viewposition="2" sortposition="4" sortdirection="asc" type="string">Title</columnname>
+		<columnname viewposition="1" sortposition="2" sortdirection="asc" type="string">Author</columnname>
+		<columnname viewposition="3" sortposition="5" sortdirection="asc" type="string">Genre</columnname>
+		<columnname viewposition="4" sortposition="6" sortdirection="asc" type="string">Language</columnname>
+		<columnname viewposition="5" sortposition="7" sortdirection="asc" type="number">Rating</columnname>
+		<columnname viewposition="6" sortposition="1" sortdirection="asc" type="string">Series</columnname>
+		<columnname viewposition="7" sortposition="3" sortdirection="asc" type="toggle">Read</columnname>
+	</header>
+	<rows>
+		<row>
+			<column>The Long Dark Tea-time of the soul</column>
+			<column>Adams, Douglas</column>
+			<column>Detective</column>
+			<column>EN</column>
+			<column>4</column>
+			<column>The Dirk Gently Omnibus</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>Dirk Gently Holistic Detective Agency</column>
+			<column>Adams, Douglas</column>
+			<column>Detective</column>
+			<column>EN</column>
+			<column>5</column>
+			<column>The Dirk Gently Onnibus</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>Young Zaphod Plays it Safe</column>
+			<column>Adams, Douglas</column>
+			<column>Sci-Fi</column>
+			<column>EN</column>
+			<column>3</column>
+			<column>The Hitchhickers Guide To the Galaxy</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>The Restaurant at the End of the Universe</column>
+			<column>Adams, Douglas</column>
+			<column>Sci-Fi</column>
+			<column>EN</column>
+			<column>5</column>
+			<column>The Hitchhickers Guide To the Galaxy</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>The Hitchhickers Guide to the Galaxy</column>
+			<column>Adams, Douglas</column>
+			<column>Sci-Fi</column>
+			<column>EN</column>
+			<column>5</column>
+			<column>The Hitchhickers Guide To the Galaxy</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>Life, The Universe and Everything</column>
+			<column>Adams, Douglas</column>
+			<column>Sci-Fi</column>
+			<column>EN</column>
+			<column>5</column>
+			<column>The Hitchhickers Guide To the Galaxy</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>So Long, and Thanks for All the Fish</column>
+			<column>Adams, Douglas</column>
+			<column>EN</column>
+			<column>Sci-Fi</column>
+			<column>5</column>
+			<column>The Hitchhickers Guide To the Galaxy</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>Mostly Harmless</column>
+			<column>Adams, Douglas</column>
+			<column>Sci-Fi</column>
+			<column>EN</column>
+			<column>5</column>
+			<column>The Hitchhickers Guide To the Galaxy</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>Neutronster</column>
+			<column>Niven, Larry</column>
+			<column>Sci-Fi</column>
+			<column>NL</column>
+			<column>5</column>
+			<column>Known Space</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>Ringworld</column>
+			<column>Niven, Larry</column>
+			<column>Sci-Fi</column>
+			<column>EN</column>
+			<column>5</column>
+			<column>Known Space</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>The Ringworld Throne</column>
+			<column>Niven, Larry</column>
+			<column>Sci-Fi</column>
+			<column>EN</column>
+			<column></column>
+			<column>Known Space</column>
+			<column>FALSE</column>
+		</row>
+		<row>
+			<column>The Ringworld engineers</column>
+			<column>Niven, Larry</column>
+			<column>Sci-fi</column>
+			<column>EN</column>
+			<column>5</column>
+			<column>Known Space</column>
+			<column>TRUE</column>
+		</row>
+		<row>
+			<column>Flatlander</column>
+			<column>Niven, Larry</column>
+			<column>Sci-Fi</column>
+			<column>NL</column>
+			<column></column>
+			<column></column>
+			<column>FALSE</column>
+		</row>
+		<row>
+			<column>CORRUPT</column>
+			<column>CORRUPT</column>
+			<column>CORRUPT</column>
+			<column>CORRUPT</column>
+			<column>CORRUPT</column>
+			<column>CORRUPT</column>
+			<!-- CORRUPT: Missing column -->
+		</row>
+	</rows>
+</list>
