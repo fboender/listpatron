@@ -24,3 +24,4 @@ Small things that need to be taken care of but which I'm going to forget about
   - Repeat the rename and ok step until the error occurs (somewhat intermittent)
 
 * gchar should be used where appropriate.
+* Bug: New sorting rule with name 'Unnamed' overwrites existing 'Unnamed' rules without prompting.
