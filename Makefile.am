@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = gnu
 LDADD = @GTK_LIBS@ @XML_LIBS@
 CPPFLAGS = @GTK_CFLAGS@ @XML_CPPFLAGS@ 
 
-SUBDIRS = src data testdata pixmaps
+SUBDIRS = src xml testdata pixmaps
 
 #bin_PROGRAMS = listpatron
 #listpatron_SOURCES = debug.c libgtkext.c libxmlext.c list.c listpatron.c \

@@ -29,7 +29,7 @@ dnl AC_CHECK_HEADERS(vector,,AC_MSG_WARN(STL classes missing ?))
 
 AC_OUTPUT([Makefile 
            src/Makefile 
-		   data/Makefile 
+		   xml/Makefile 
 		   testdata/Makefile 
 		   pixmaps/Makefile 
 		   pixmaps/icons/Makefile
