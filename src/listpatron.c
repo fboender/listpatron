@@ -34,7 +34,7 @@
 #include <glib-object.h>
 #include <libxml/parser.h>
 
-//#define _DEBUG
+#define _DEBUG
 
 /****************************************************************************/
 
@@ -365,9 +365,57 @@ list_ *list_create (void) {
 	return (list);
 }
 
+int list_load (list_ *list, char *filename) {
+	xmlDocPtr doc;
+	xmlNodePtr node_header, node_rowdata;
+	xmlNodePtr node_cols, node_rows;
+	char **rowdata;
+	
+	doc = xmlReadFile (filename, "ISO-8859-1", 0);
+
+	node_header = doc->children->children->next;
+	node_rowdata = doc->children->children->next->next->next;
+
+	/* Read columns and adjust list */
+	list->nr_of_cols = 0;
+	node_cols = node_header->children;
+
+	while (node_cols != NULL) {
+		if (node_cols->type == XML_ELEMENT_NODE) {
+			list_column_add (list, node_cols->children->content);
+		}
+		node_cols = node_cols->next;
+	}
+
+	/* Read rows and add to list */
+	rowdata = malloc (sizeof(char *) * list->nr_of_cols);
+	node_rows = node_rowdata->children;
+	
+	while (node_rows != NULL) {
+		if (node_rows->type == XML_ELEMENT_NODE) {
+			int i = 0;
+			node_cols = node_rows->children;
+			while (node_cols != NULL) {
+				if (node_cols->type == XML_ELEMENT_NODE) {
+					rowdata[i] = node_cols->children->content;
+					i++;
+				}
+				node_cols = node_cols->next;
+			}
+
+			list_row_add (list, list->nr_of_cols, rowdata);
+		}
+		node_rows = node_rows->next;
+	}
+
+	free (rowdata);
+
+	return (0);
+}
+
 int list_save (list_ *list, char *filename) {
 	xmlDocPtr doc;
-	xmlNodePtr node_root, node_header, node_row;
+	xmlNodePtr node_root, node_header, node_rowdata, node_row;
 	GtkTreeIter iter;
 	gchar *row_data;
 	GList *columns = NULL, *column_iter = NULL;
@@ -389,9 +437,11 @@ int list_save (list_ *list, char *filename) {
 	}
 
 	/* Parse row information */
+	node_rowdata = xmlNewChild (node_root, NULL, (const xmlChar *)"rowdata", NULL);
+	
 	gtk_tree_model_get_iter_root (GTK_TREE_MODEL(list->liststore), &iter);
 	do {
-		node_row = xmlNewChild (node_root, NULL, (const xmlChar *)"row", NULL);
+		node_row = xmlNewChild (node_rowdata, NULL, (const xmlChar *)"row", NULL);
 		for (i = 0; i < list->nr_of_cols; i++) {
 			gtk_tree_model_get (GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
 			xmlNewChild(node_row, NULL, (const xmlChar *)"col", row_data);
@@ -410,9 +460,10 @@ int list_save (list_ *list, char *filename) {
 
 /* Menu *********************************************************************/
 void ui_menu_file_open_cb (void) {
-		GtkWidget *win_file_open;
-	
-	win_file_open = gtk_file_selection_new ("Open file");
+//		GtkWidget *win_file_open;
+
+		list_load (list, "list");
+//	win_file_open = gtk_file_selection_new ("Open file");
 	
 	/* FIXME: Implement 
     g_signal_connect (
@@ -426,7 +477,7 @@ void ui_menu_file_open_cb (void) {
 			G_CALLBACK (gtk_widget_destroy), 
 			G_OBJECT (win_file_open));
 	*/
-	gtk_widget_show (win_file_open);
+//	gtk_widget_show (win_file_open);
 }
 
 void ui_menu_file_save_cb (void) {
@@ -599,8 +650,9 @@ int main (int argc, char *argv[]) {
 
 
 #ifdef _DEBUG
-	ui_menu_debug_addtestdata_cb();
+//	ui_menu_debug_addtestdata_cb();
 #endif
+
 	gtk_widget_show_all (win_main);
 	gtk_main();
 	
