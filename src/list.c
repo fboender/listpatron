@@ -37,7 +37,7 @@ extern int opt_batch;
 extern int opt_verbose;
 extern int opt_version;
 
-void list_sort_dump_rules(void) {
+void list_sort_dump_rules(list_ *list) {
 	int i;
 	int i_col;
 
@@ -59,7 +59,7 @@ void list_sort_dump_rules(void) {
 	printf("------------------------------------------------\n");
 }
 
-sort_ *list_sort_getrule(char *name) {
+sort_ *list_sort_getrule(list_ *list, char *name) {
 	int i;
 
 	assert(name != NULL);
@@ -77,7 +77,7 @@ sort_ *list_sort_getrule(char *name) {
 	return(NULL);
 }
 
-void list_sort_add(char *old_name, char *name, GArray *columns) {
+void list_sort_add(list_ *list, char *old_name, char *name, GArray *columns) {
 	int i;
 	sort_ *sort = NULL;
 
@@ -117,7 +117,7 @@ void list_sort_add(char *old_name, char *name, GArray *columns) {
 	sort->columns = columns;
 }
 
-void list_sort_remove(char *name) {
+void list_sort_remove(list_ *list, char *name) {
 	int i;
 
 	for (i = 0; i < list->sorts->len; i++) {
@@ -134,10 +134,15 @@ void list_sort_remove(char *name) {
 
 /* FIXME: This routine can and should be optimized. */
 gint list_sort_func (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer user_data) {
+	list_ *list;
 	char *row_data_a;
 	char *row_data_b;
 	int i;
 
+	assert(user_data != NULL);
+	
+	list = user_data;
+	
 	for (i = 0; i < list->sort_active->len; i++) {
 		sort_col_ *sort_col;
 		int cmp_rslt;
@@ -472,7 +477,7 @@ void list_row_delete(list_ *list, GList *row_refs) {
 	list->modified = TRUE;
 }
 
-void list_title_set(char *title) {
+void list_title_set(list_ *list, char *title) {
 	char *title_markup, *title_win;
 	
 	assert (title != list->title);
@@ -523,7 +528,7 @@ list_ *list_create(void) {
 	return (list);
 }
 
-void list_clear(void) {
+void list_clear(list_ *list) {
 	if (list != NULL) {
 		GList *columns = NULL, *column_iter;
 		
@@ -884,7 +889,7 @@ int list_load_sorts(list_ *list, xmlNodeSetPtr nodeset_sorts) {
 
 			node_iter = node_iter->next; /* Next element in sorts/sort/ */
 		}
-		list_sort_add(NULL, sort_name, sort_cols);
+		list_sort_add(list, NULL, sort_name, sort_cols);
 	}
 
 	return (0);
@@ -980,7 +985,7 @@ int list_load(list_ *list, char *filename) {
 	if (list->description != NULL) { free(list->description); }
 	if (list->keywords != NULL) { free(list->keywords); }
 			
-	list_title_set(xml_get_element_content(doc, "/list/info/title"));
+	list_title_set(list, xml_get_element_content(doc, "/list/info/title"));
 	list->version = strdup(xml_get_element_content(doc, "/list/info/version"));
 	list->author = strdup(xml_get_element_content(doc, "/list/info/author"));
 	list->description = strdup(xml_get_element_content(doc, "/list/info/description"));
@@ -1236,6 +1241,9 @@ int list_save_check(list_ *list) {
 	}
 }
 
+/* FIXME: Can't search up, can't restart search. can't start search at certain
+ * row/cols
+ */
 int list_find(list_ *list, char *needle, int options, int *occ_row, int *occ_col) {
 	GtkTreeIter iter;
 	int i, row = 0;

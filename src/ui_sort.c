@@ -56,7 +56,7 @@ void ui_sort_ok_cb(ui_sort_ *ui_sort, GtkListStore *ls_sort, GtkEntry *ent_name)
 		g_array_append_val(sort_cols, sort_col);
 	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(ls_sort), &iter));
 
-	list_sort_add(ui_sort->old_name, (char *)gtk_entry_get_text(ent_name), sort_cols);
+	list_sort_add(list, ui_sort->old_name, (char *)gtk_entry_get_text(ent_name), sort_cols);
 }
 
 void ui_sort_selection_changed_cb(GtkTreeSelection *treeselection, struct ui_sort_ *sort) {
@@ -113,7 +113,7 @@ void ui_sort_sortdesc_toggled_cb(GtkWidget *radio, ui_sort_ *sort) {
 }
 
 void ui_sort_rule_delete(char *rulename) {
-	list_sort_remove(rulename);
+	list_sort_remove(list, rulename);
 }
 
 void ui_sort_rule_edit_load(ui_sort_ *ui_sort, char *rulename, GtkListStore *ls_sort, GtkEntry *ent_name) {
@@ -134,7 +134,7 @@ void ui_sort_rule_edit_load(ui_sort_ *ui_sort, char *rulename, GtkListStore *ls_
 			gtk_list_store_set(ls_sort, &iter, 2, (int)GTK_SORT_ASCENDING, -1);
 		}
 	} else { /* Edit existing rule */
-		sort_rule = list_sort_getrule(rulename);
+		sort_rule = list_sort_getrule(list, rulename);
 		
 		assert(sort_rule != NULL);
 		assert(sort_rule->name != NULL);

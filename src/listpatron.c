@@ -100,7 +100,7 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 int ui_file_load(char *filename) {
 	int err_nr;
 
-	list_clear();
+	list_clear(list);
 	list = list_create();
 
 	if ((err_nr = list_load(list, filename)) != 0) {
@@ -123,9 +123,9 @@ int ui_file_load(char *filename) {
  * Callbacks (Menu)
  ****************************************************************************/
 void ui_menu_file_new_cb(void) {
-	list_clear();
+	list_clear(list);
 	list = list_create();
-	list_title_set("Untitled");
+	list_title_set(list, "Untitled");
 	list->modified = FALSE; /* Overwrite mod flag setting by list_title_set */
 }
 
@@ -583,7 +583,7 @@ void ui_listtitle_click_cb(GtkWidget *widget, GdkEventButton *event, gpointer *d
 		char *new_title;
 		new_title = gtk_input_dialog("Enter a name for the list", list->title);
 		if (new_title != NULL) {
-			list_title_set(new_title);
+			list_title_set(list, new_title);
 			free(new_title);
 		}
     }
@@ -605,7 +605,7 @@ GtkWidget *ui_create_listtitle(void) {
 			NULL);
 	
 	title = strdup (list->title);
-	list_title_set(title);
+	list_title_set(list, title);
 	list->modified = FALSE;
 	free (title);
 	
@@ -684,14 +684,14 @@ void ui_menu_sort_rule_activate_cb(GtkAction *action, char *sort_rule) {
 	GList *col_iter = NULL;
 
 	/* Set the selected sort as the active sort */
-	sort = list_sort_getrule(sort_rule);
+	sort = list_sort_getrule(list, sort_rule);
 	list->sort_active = sort->columns;
 	
 	/* Override default search func with our own */
 	gtk_tree_sortable_set_default_sort_func(
 			GTK_TREE_SORTABLE(list->liststore), 
 			list_sort_func,
-			NULL,
+			list,
 			NULL);
 	gtk_tree_sortable_set_sort_column_id(
 			GTK_TREE_SORTABLE(list->liststore),

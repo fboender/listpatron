@@ -78,7 +78,7 @@ void ui_import_csv(void) {
 	gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER(dia_file_import), vbox);
 
 	if (gtk_dialog_run(GTK_DIALOG(dia_file_import)) == GTK_RESPONSE_ACCEPT) {
-		list_clear();
+		list_clear(list);
 		list = list_create();
 		import->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_import)));
 		list_import_csv(list, import->filename, import->delimiter);

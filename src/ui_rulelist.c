@@ -195,87 +195,87 @@ gint ui_rulelist(
 
 	response = gtk_dialog_run(GTK_DIALOG(dia_rulelist));
 
-	/*********************************************************************
-	 * TIJDELIJK: Sorting rule die geselecteerd is als sorting rule 
-	 * instellen
-	 *********************************************************************/
-	{
-		int selection_exists;
-		GtkTreeIter iter;
-
-		selection_exists = gtk_tree_selection_get_selected(ui_rulelist->treeselection, NULL, &iter);
-	
-		if (selection_exists) {
-			char *rule_name = NULL;
-			sort_ *sort;
-			GList *columns = NULL;
-			GList *col_iter = NULL;
-			
-			/* Get the selected rule's name for possible editing/deletion */
-			gtk_tree_model_get(GTK_TREE_MODEL(ui_rulelist->ls_rulelist), &iter, 0, &rule_name, -1);
-			
-			/* FIXME: Remove external reference to list of done */
-			/* FIXME list_sort_getrule returns sort_ *, but sort_active is
-			 * GArray.. perhaps change sort_active to be sort_ * and change
-			 * list_sort_func() to use sort_ * instead of cols */
-			sort = list_sort_getrule(rule_name);
-			list->sort_active = sort->columns;
-
-			gtk_tree_sortable_set_default_sort_func(
-					GTK_TREE_SORTABLE(list->liststore), 
-					list_sort_func,
-					NULL,
-					NULL);
-
-			gtk_tree_sortable_set_sort_column_id(
-					GTK_TREE_SORTABLE(list->liststore),
-					GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID,
-					GTK_SORT_ASCENDING /* FIXME: Does it matter? */);
-
-			/* Set column sort direction arrow indicators */
-			columns = gtk_tree_view_get_columns(treeview);
-			col_iter = columns;
-			while (col_iter != NULL) {
-				int col_nr;
-				int col_sort_dir;
-				sort_col_ *sort_col;
-				int i;
-				
-				col_nr = GPOINTER_TO_UINT(
-						g_object_get_data(G_OBJECT(col_iter->data), "col_nr"));
-				
-				/* Find the sort_order for this column */
-				for (i = 0; i < sort->columns->len; i++) {
-					sort_col = g_array_index(
-							sort->columns,
-							sort_col_ *,
-							i);
-					if (sort_col->col_nr == col_nr) {
-						break;
-					}
-				}
-				
-				col_sort_dir = sort_col->sort_order;
-
-//				sort_col = g_array_index(
-//						sort->columns,
-//						sort_col_ *,
-//						col_nr);
+//	/*********************************************************************
+//	 * TIJDELIJK: Sorting rule die geselecteerd is als sorting rule 
+//	 * instellen
+//	 *********************************************************************/
+//	{
+//		int selection_exists;
+//		GtkTreeIter iter;
+//
+//		selection_exists = gtk_tree_selection_get_selected(ui_rulelist->treeselection, NULL, &iter);
+//	
+//		if (selection_exists) {
+//			char *rule_name = NULL;
+//			sort_ *sort;
+//			GList *columns = NULL;
+//			GList *col_iter = NULL;
+//			
+//			/* Get the selected rule's name for possible editing/deletion */
+//			gtk_tree_model_get(GTK_TREE_MODEL(ui_rulelist->ls_rulelist), &iter, 0, &rule_name, -1);
+//			
+//			/* FIXME: Remove external reference to list of done */
+//			/* FIXME list_sort_getrule returns sort_ *, but sort_active is
+//			 * GArray.. perhaps change sort_active to be sort_ * and change
+//			 * list_sort_func() to use sort_ * instead of cols */
+//			sort = list_sort_getrule(list, rule_name);
+//			list->sort_active = sort->columns;
+//
+//			gtk_tree_sortable_set_default_sort_func(
+//					GTK_TREE_SORTABLE(list->liststore), 
+//					list_sort_func,
+//					list,
+//					NULL);
+//
+//			gtk_tree_sortable_set_sort_column_id(
+//					GTK_TREE_SORTABLE(list->liststore),
+//					GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID,
+//					GTK_SORT_ASCENDING /* FIXME: Does it matter? */);
+//
+//			/* Set column sort direction arrow indicators */
+//			columns = gtk_tree_view_get_columns(treeview);
+//			col_iter = columns;
+//			while (col_iter != NULL) {
+//				int col_nr;
+//				int col_sort_dir;
+//				sort_col_ *sort_col;
+//				int i;
+//				
+//				col_nr = GPOINTER_TO_UINT(
+//						g_object_get_data(G_OBJECT(col_iter->data), "col_nr"));
+//				
+//				/* Find the sort_order for this column */
+//				for (i = 0; i < sort->columns->len; i++) {
+//					sort_col = g_array_index(
+//							sort->columns,
+//							sort_col_ *,
+//							i);
+//					if (sort_col->col_nr == col_nr) {
+//						break;
+//					}
+//				}
+//				
 //				col_sort_dir = sort_col->sort_order;
-				
-				gtk_tree_view_column_set_sort_indicator(
-						GTK_TREE_VIEW_COLUMN(col_iter->data),
-						TRUE);
-				gtk_tree_view_column_set_sort_order(
-						GTK_TREE_VIEW_COLUMN(col_iter->data),
-						col_sort_dir);
-				
-				
-				col_iter = col_iter->next;
-			}
-
-		}
-	}
+//
+////				sort_col = g_array_index(
+////						sort->columns,
+////						sort_col_ *,
+////						col_nr);
+////				col_sort_dir = sort_col->sort_order;
+//				
+//				gtk_tree_view_column_set_sort_indicator(
+//						GTK_TREE_VIEW_COLUMN(col_iter->data),
+//						TRUE);
+//				gtk_tree_view_column_set_sort_order(
+//						GTK_TREE_VIEW_COLUMN(col_iter->data),
+//						col_sort_dir);
+//				
+//				
+//				col_iter = col_iter->next;
+//			}
+//
+//		}
+//	}
 
 	/* FIXME: Memory onzin opruimen */
 	free(ui_rulelist);
