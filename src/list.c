@@ -355,12 +355,14 @@ void list_clear(void) {
 		/* Throw away columns in the treeview */
 		g_object_ref(treeview);
 		columns = gtk_tree_view_get_columns(treeview);
-		column_iter = columns;
-		while (column_iter != NULL) {
-			list_column_delete(list, GTK_TREE_VIEW_COLUMN(column_iter->data));
-			column_iter = column_iter->next;
+		if (columns != NULL) {
+			column_iter = columns;
+			while (column_iter != NULL) {
+				list_column_delete(list, GTK_TREE_VIEW_COLUMN(column_iter->data));
+				column_iter = column_iter->next;
+			}
+			g_list_free(columns);
 		}
-		g_list_free(columns);
 
 		/* Deep free list structure */
 		if (list->version != NULL) { free(list->version); }
@@ -372,7 +374,6 @@ void list_clear(void) {
 
 		free(list);
 		list = NULL; /* FIXME: Does this reference the local or global var? */
-		list->modified = TRUE;
 	} else {
 		gtk_statusbar_msg("It's really empty. Don't worry"); /* FIXME: Doesn't belong here */
 	}
@@ -883,19 +884,20 @@ int list_save(list_ *list, char *filename) {
 	/* Save row data <rows> */
 	node_rows = xmlNewChild(node_root, NULL, (const xmlChar *)"rows", NULL);
 
-	gtk_tree_model_get_iter_root(GTK_TREE_MODEL(list->liststore), &iter);
-	do {
-		node_row = xmlNewChild(node_rows, NULL, (const xmlChar *)"row", NULL);
-		for (i = 0; i < list->nr_of_cols; i++) {
-			GtkTreeViewColumn* col;
+	if(gtk_tree_model_get_iter_root(GTK_TREE_MODEL(list->liststore), &iter)) {
+		do {
+			node_row = xmlNewChild(node_rows, NULL, (const xmlChar *)"row", NULL);
+			for (i = 0; i < list->nr_of_cols; i++) {
+				GtkTreeViewColumn* col;
 
-			gtk_tree_model_get(GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
-			
-			col = gtk_tree_view_get_column(treeview, i);
-			xml_add_element_content(node_row, "column", "%s", row_data);
-			free(row_data);
-		}
-	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
+				gtk_tree_model_get(GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
+				
+				col = gtk_tree_view_get_column(treeview, i);
+				xml_add_element_content(node_row, "column", "%s", row_data);
+				free(row_data);
+			}
+		} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
+	}
 
 	xmlSaveFormatFileEnc(filename, doc, "ISO-8859-1", 1);
 	xmlFreeDoc(doc);
