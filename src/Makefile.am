@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = gnu
 LDADD = @GTK_LIBS@ @XML_LIBS@
 CPPFLAGS = \
+	-g \
 	@GTK_CFLAGS@ \
 	@XML_CPPFLAGS@ \
 	-DDATADIR=\"$(datadir)\"

@@ -37,12 +37,15 @@ static GtkActionEntry entries[] = {
 	{ "FilterMenu"    , NULL            , "_Filter" }            , 
 	{ "ReportMenu"    , NULL            , "_Report" }            , 
 
-#ifdef _DEBUG
+#ifdef DEBUG
 	{ "DebugMenu"     , NULL            , "De_bug" }             , 
 	{ "AddTestData"   , NULL            , "Add test _data"       , NULL         , "Add test data to an empty list"              , ui_menu_debug_addtestdata_cb }   , 
 	{ "AddTestRows"   , NULL            , "Add test _rows"       , NULL         , "Add test rows to a testdata list"            , ui_menu_debug_addtestrows_cb }   , 
 	{ "DumpSortRules" , NULL            , "Dump _sorting rules"  , NULL         , "Dump the available sorting rules"            , ui_menu_debug_dumpsortrules_cb } ,
-#endif
+#endif /* DEBUG */
+
+	{ "HelpMenu"      , NULL            , "_Help" }             , 
+	{ "About"         , NULL            , "_About"              , NULL         , "Add test data to an empty list"              , ui_menu_help_about_cb }   , 
 };
 
 static const char *ui_description =
@@ -91,14 +94,17 @@ static const char *ui_description =
 "      <menu action='ReportMenu'>"
 "      </menu>"
 "    </menu>"
-#ifdef _DEBUG
+#ifdef DEBUG
 "    <menu action='DebugMenu'>"
 "      <menuitem action='AddTestData'/>"
 "      <menuitem action='AddTestRows'/>"
 "      <separator/>"
 "      <menuitem action='DumpSortRules'/>"
 "    </menu>"
-#endif
+#endif /* DEBUG */
+"    <menu action='HelpMenu'>"
+"      <menuitem action='About'/>"
+"    </menu>"
 "  </menubar>"
 "</ui>";
 

@@ -1,0 +1,483 @@
+2005-01-09 22:51  todsah
+
+	* AUTHORS, README: Added content.
+
+2005-01-09 22:04  todsah
+
+	* src/listpatron.c: Removed debugging information in row_add and
+	  row_del which caused segfault.
+
+2005-01-09 21:28  todsah
+
+	* TODO: 'data/' has been moved to 'xml/'.
+
+2005-01-09 20:52  todsah
+
+	* Makefile.am, configure.in, testdata/Boeken-corrupt.lip,
+	  testdata/Boeken-ext.lip, testdata/Boeken.lip: 'Data/' dir moved
+	  to 'xml/' in CVS.
+
+2005-01-09 19:47  todsah
+
+	* xml/Makefile.am: GNU Build environment adjustments.
+
+2005-01-09 19:38  todsah
+
+	* src/stock.c: Changed path for icons.
+
+2005-01-09 19:37  todsah
+
+	* pixmaps/icons/Makefile.am: Installation information added for GNU
+	  Build environment.
+
+2005-01-09 19:36  todsah
+
+	* TODO: Some GNU Build stuff left to do.
+
+2005-01-09 19:35  todsah
+
+	* src/list.c: List validation on load now uses DATADIR for DTD
+	  location.
+
+2005-01-09 14:39  todsah
+
+	* src/: list.c, list.h, listpatron.c: Forgotten uncommited changed
+	  before GNU buildification added via patch.
+
+2005-01-09 14:12  todsah
+
+	* Makefile: Removed. Makeing now handled by GNU build enviroment
+	  tools.
+
+2005-01-09 14:11  todsah
+
+	* AUTHORS, COPYING, ChangeLog, INSTALL, Makefile.am, NEWS, README,
+	  configure.in, reconf.sh: Initial commit. GNU Build enviroment
+	  files. (automake, autoconf, etc).
+
+2005-01-09 14:08  todsah
+
+	* pixmaps/icons/: listpatron-col-add.png, listpatron-col-del.png,
+	  listpatron-row-add.png, listpatron-row-del.png: Initial commit.
+
+2005-01-09 14:08  todsah
+
+	* pixmaps/icons/Makefile.am, testdata/Makefile.am: Initial commit.
+	  For automake.
+
+2005-01-09 14:05  todsah
+
+	* src/Makefile.am, xml/Makefile.am, pixmaps/Makefile.am: Initial
+	  commit. For automake.
+
+2005-01-05 22:02  todsah
+
+	* src/: listpatron.c, listpatron.h, menu_def.h, stock.c, stock.h:
+	  Moved stock icon handling to seperate files and refactored the
+	  code.
+
+2005-01-05 21:59  todsah
+
+	* ROADMAP: Small changes.
+
+2005-01-05 21:59  todsah
+
+	* Makefile: Addition of stock.o. Addition of _DEBUG and _DATADIR
+	  defines.
+
+2004-12-30 20:35  todsah
+
+	* TODO: Removed done TODO's.
+
+2004-12-30 20:21  todsah
+
+	* src/: libgtkext.c, libgtkext.h, list.c, ui_sort.c, ui_sort.h:
+	  Adding of sorting rules with duplicate names is now intercepted.
+
+2004-12-30 20:20  todsah
+
+	* TODO: 'Unnamed' sorting rule overwrites bug added.
+
+2004-12-30 19:55  todsah
+
+	* TODO: gchar usage todo.
+
+2004-12-30 19:31  todsah
+
+	* TODO: New bug.
+
+2004-12-28 22:31  todsah
+
+	* src/list.c: Improved the HTML export (added titles, top align row
+	  content, no wrapping of content).
+
+2004-12-28 22:10  todsah
+
+	* src/list.c: Flagging list as modified when modifying sorts.
+
+2004-12-28 22:09  todsah
+
+	* src/ui_sort.c: Implemented the 'Move up' and 'Move down' buttons.
+
+2004-12-23 17:13  todsah
+
+	* ROADMAP, TODO: Minor changes.
+
+2004-12-23 16:52  todsah
+
+	* TODO: New items.
+
+2004-12-23 16:41  todsah
+
+	* src/listpatron.c: ui_create_toolbar() overwrote global vars used
+	  by Sort menu. Fixed.	Small cleanups in function calling
+	  convention.
+
+2004-12-23 16:01  todsah
+
+	* Makefile, src/list.c, src/listpatron.c, src/menu_def.h: Added
+	  toolbar.
+
+2004-12-22 22:36  todsah
+
+	* src/: list.c, list.h, listpatron.c, ui_import.c, ui_rulelist.c,
+	  ui_sort.c: Sanitized 'list' library. Every call is now list_
+	  independant. Added comments to header file.
+
+2004-12-22 19:56  todsah
+
+	* src/: list.c, list.h, listpatron.c: Encapsulation of list
+	  filename access. Fixes a bug in Save as..
+
+2004-12-22 19:55  todsah
+
+	* src/menu_def.h: Initial commit.
+
+2004-12-21 20:18  todsah
+
+	* Makefile, ROADMAP, TODO, src/libgtkext.h, src/list.c, src/list.h,
+	  src/listpatron.c, src/listpatron.h, src/ui_export.c,
+	  src/ui_export.h, src/ui_find.c, src/ui_find.h, src/ui_import.c,
+	  src/ui_import.h, src/ui_rulelist.c, src/ui_rulelist.h,
+	  src/ui_sort.c, src/ui_sort.h, testdata/Boeken-ext.lip,
+	  testdata/Boeken.lip: Sorting added.
+
+2004-12-02 14:33  todsah
+
+	* src/listpatron.c: Typo fixed.
+
+2004-12-02 14:32  todsah
+
+	* src/list.c: Additional error checking during list load.
+
+2004-12-02 14:23  todsah
+
+	* testdata/Boeken-corrupt.lip: Initial release.
+
+2004-12-02 10:45  todsah
+
+	* src/listpatron.c: ui_file_load() added. General wrapper with
+	  error reporting.  Correct handling of main window delete-event.
+
+2004-12-02 10:43  todsah
+
+	* src/list.c: list_column_rename() added.  lip files are now
+	  checked for row corruption.  Improvements in marking the list as
+	  changed.
+
+2004-12-02 10:40  todsah
+
+	* src/list.h: list_column_rename() added.
+
+2004-12-02 10:39  todsah
+
+	* Makefile: Dependencies on .o files moved to linking section.
+
+2004-12-01 19:57  todsah
+
+	* src/: listpatron.c, listpatron.h: Added character separated
+	  export.  Added finding.
+
+2004-12-01 19:54  todsah
+
+	* src/list.h: Initial commit.
+
+2004-12-01 19:54  todsah
+
+	* src/list.c: Initial commit (taken from listpatron.c).  Addition
+	  of Character Separated export.
+
+2004-12-01 19:52  todsah
+
+	* src/libxmlext.c: Memory allocation fix in
+	  xml_add_element_content() which caused the last char to sometimes
+	  be removed.
+
+2004-12-01 19:50  todsah
+
+	* src/libgtkext.c: Bugfix in the memory allocation.
+
+2004-12-01 19:49  todsah
+
+	* src/debug.c: Bugfix in allocation for memory.  Reference to
+	  external entitiy opt_verbose to actually make the debugger do
+	  something.
+
+2004-12-01 19:46  todsah
+
+	* TODO: Initial commit
+
+2004-11-26 11:13  todsah
+
+	* src/listpatron.c: Much stuff was moved to seperate libs.
+
+2004-11-26 11:12  todsah
+
+	* src/listpatron.h: Initial commit.
+
+2004-11-26 11:10  todsah
+
+	* Makefile: Added and correctified dependencies. Building now
+	  checks for up-to-dateness.
+
+2004-11-26 11:09  todsah
+
+	* src/: debug.c, debug.h, libgtkext.c, libgtkext.h, libxmlext.c,
+	  libxmlext.h: Initial commit. Taken from listpatron.c
+
+2004-08-21 19:04  todsah
+
+	* src/listpatron.c: List selection improvements Multiple row
+	  deletion implemented
+
+2004-08-20 12:08  todsah
+
+	* src/listpatron.c: Segfault fix in cell editing routine: path was
+	  freed to early
+
+2004-08-20 11:56  todsah
+
+	* src/listpatron.c: Various improvements in the load and save
+	  dialogs
+
+2004-08-17 23:51  todsah
+
+	* src/listpatron.c: Reimplementation of list open functionality
+
+2004-08-17 23:33  todsah
+
+	* src/listpatron.c: List is now cleared before loading/importing
+	  new data
+
+2004-08-17 23:26  todsah
+
+	* src/listpatron.c: Addition of list_clear() function tree view is
+	  not created by list_create() anymore but re-used throughout the
+	  program
+
+2004-08-17 22:12  todsah
+
+	* src/listpatron.c: Various memoryleak fixes
+
+2004-08-17 21:28  todsah
+
+	* src/listpatron.c: Various memoryleak fixes and code cleanups
+
+2004-08-17 20:47  todsah
+
+	* src/listpatron.c: Segfault fix in list_title_set() where one byte
+	  too few was allocated
+
+2004-08-17 20:28  todsah
+
+	* src/listpatron.c: Rewrite of list saving. Now partly Listpatron
+	  XML v0.1 implemented.
+
+2004-08-15 22:24  todsah
+
+	* testdata/Boeken.csv, testdata/Boeken.lip, testdata/Boeken.tsv,
+	  xml/listpatron.dtd: Initial commit
+
+2004-08-15 22:19  todsah
+
+	* src/listpatron.c: Commandline option handling added
+
+2004-08-15 20:16  todsah
+
+	* src/listpatron.c: Rewrite of list loading. Now partly Listpatron
+	  XML v0.1 implemented.  Addition of new debug_msg() function to
+	  replace remaining printf's
+
+2004-08-15 12:57  todsah
+
+	* src/listpatron.c: HTML export capability added
+
+2004-08-12 18:43  todsah
+
+	* src/listpatron.c: Entry in input dialog now treats return key as
+	  acceptance button List title added
+
+2004-08-11 21:33  todsah
+
+	* src/listpatron.c: Application now remembers window's size and
+	  position in savefile and restores them upon load
+
+2004-08-11 20:11  todsah
+
+	* src/listpatron.c: Application now asks for quit confirmation when
+	  list is modified
+
+2004-08-10 22:41  todsah
+
+	* src/listpatron.c: Partial Postscript export implemented
+
+2004-08-09 20:02  todsah
+
+	* src/listpatron.c: Importing (list functions and dialogs) of CSV
+	  was adapted to allow for other delimiters
+
+2004-08-04 20:14  todsah
+
+	* Makefile: splash.h dependency added
+
+2004-08-04 20:13  todsah
+
+	* src/listpatron.c: Added About dialog with splashscreen
+
+2004-08-04 20:12  todsah
+
+	* src/splash.h: Initial commit
+
+2004-08-04 19:53  todsah
+
+	* src/listpatron.c: Row rules hinting turned on.
+
+2004-08-04 19:40  todsah
+
+	* src/listpatron.c: Fixed bug in Comma Separated import where the
+	  last column wasn't read.
+
+2004-08-04 19:06  todsah
+
+	* src/listpatron.c: Statusbar function gtk_statusbar_msg() added
+	  which can be called like printf() Replaced old usage of
+	  gtk_statusbar_push() with gtk_statusbar_msg() Fixed a bug in the
+	  cvs importing where the first row was skipped due to it being
+	  used for determining the number of columns.
+
+2004-08-02 22:59  todsah
+
+	* src/listpatron.c: Added general error dialog function
+	  (gtk_error_dialog)
+
+2004-08-02 21:35  todsah
+
+	* src/listpatron.c: CVS import added Error checking and valid
+	  listpatron XML file checking added to load
+
+2004-07-21 08:06  todsah
+
+	* src/listpatron.c: Status bar and various messages added
+
+2004-07-20 21:14  todsah
+
+	* src/listpatron.c: Implemented Open, Save, Save as dialogs
+
+2004-07-19 22:59  todsah
+
+	* src/listpatron.c: Code cleanups and beautifications
+
+2004-07-19 22:47  todsah
+
+	* src/listpatron.c: Extended debugging capabilities with 'Add test
+	  rows' functionality
+
+2004-07-19 22:30  todsah
+
+	* src/listpatron.c: Basic list loading implemented
+
+2004-07-19 21:12  todsah
+
+	* src/listpatron.c: Basic list saving implemented
+
+2004-07-19 15:33  todsah
+
+	* Makefile: libxml libs and flags included
+
+2004-07-19 15:29  todsah
+
+	* src/listpatron.c: Polishing of the debug routines
+
+2004-07-19 12:23  todsah
+
+	* src/listpatron.c: Fixes in AddTestData functionality
+
+2004-07-19 12:21  todsah
+
+	* src/listpatron.c: Removed debugging output from debugging
+	  functionality
+
+2004-07-19 12:20  todsah
+
+	* src/listpatron.c: Added debugging menu item with data filler
+
+2004-07-19 11:13  todsah
+
+	* src/listpatron.c: Functionality for deleting rows added
+
+2004-07-12 08:11  todsah
+
+	* src/listpatron.c: Added deletion of columns.
+
+2004-07-11 15:54  todsah
+
+	* src/listpatron.c: List is now scrollable
+
+2004-07-11 14:06  todsah
+
+	* src/listpatron.c: File comment header added
+
+2004-07-10 19:09  todsah
+
+	* src/listpatron.c: The number of columns in the list is now kept
+	  in the struct my_gtk_tree_view_get_column_nr() added. Finds the
+	  column number from a GtkTreeView and GtkTreeViewColumn
+
+2004-07-10 18:41  todsah
+
+	* src/listpatron.c: Removed list_columns_set(), it's function has
+	  been taken over by list_column_add()
+
+2004-07-10 18:37  todsah
+
+	* src/listpatron.c: list_column_add() now copies old data into new
+	  liststore Removed the insertion of default columnnames and values
+	  when creating new list 'Rows' menu added 'Add row' option added
+	  to 'Rows' menu
+
+2004-07-10 14:05  todsah
+
+	* src/listpatron.c: list_column_add() now add's new columns
+	  correctly
+
+2004-07-10 12:41  todsah
+
+	* Makefile: Added dependency on listpatron.c to rule listpatron
+
+2004-07-10 12:27  todsah
+
+	* Makefile: Changed clean rule to reflect name change from 'lk' to
+	  'listpatron'.
+
+2004-07-03 12:53  todsah
+
+	* src/listpatron.c: Fixed compilation errors
+
+2004-07-02 21:59  todsah
+
+	* Makefile: Beautification
+
+2004-07-02 21:55  todsah
+
+	* src/listpatron.c, Makefile: Initial commit
+

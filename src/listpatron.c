@@ -26,6 +26,8 @@
  * 
  ****************************************************************************/
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -577,6 +579,7 @@ void ui_menu_help_about_cb(void) {
 	GdkPixmap *logo;
 	GtkStyle *style;
 	GtkWidget *label;
+	gchar *label_txt = NULL;
 	GtkWidget *vbox;
 	GtkWidget *frame;
 	GtkWidget *btn_ok;
@@ -597,8 +600,10 @@ void ui_menu_help_about_cb(void) {
 
 	frame = gtk_frame_new(NULL);
 	btn_ok = gtk_button_new_with_mnemonic("_Whatever");
-	
-	label = gtk_label_new("\nListPatron v%%VERSION\n\nCopyright, 2004, by Ferry Boender\n\n%%HOMEPAGE\nReleased under the GPL\n<%%EMAIL>");
+
+	label_txt = g_strdup_printf("\nListPatron v%s\n\nCopyright, 2004-2005, by Ferry Boender\n\nReleased under the GPL\n", VERSION);
+	label = gtk_label_new(label_txt);
+	g_free(label_txt);
 	vbox = gtk_vbox_new(FALSE, 0);
 	
 	g_signal_connect(

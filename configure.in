@@ -5,6 +5,12 @@ AM_INIT_AUTOMAKE(listpatron,0.1)
 AM_CONFIG_HEADER(config.h)
 
 CXXFLAGS=
+AC_ARG_ENABLE(debug, [  --enable-debug          compile with debugging support],,enable_debug=no)
+
+if test "$enable_debug" = yes ; then
+	AC_DEFINE(DEBUG, 1, [Define if debugging is enabled.])
+fi
+AC_SUBST(DEBUG_CFLAGS)
 
 AC_PROG_CC dnl for AM_PROG_GTK only
 AC_PROG_CXX

@@ -14,6 +14,8 @@
  *    causes many problems with three-tier (separation of data and view) and
  *    removal of columns 
  */
+#include "config.h"
+
 #include <string.h>
 #include <assert.h>
 

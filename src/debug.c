@@ -9,6 +9,8 @@
  * 
  ****************************************************************************/
 
+#include "config.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <malloc.h>
@@ -19,7 +21,7 @@
 extern int opt_verbose;
 
 void debug_msg(int dbg_type, char *file, int line, char *fmt, ...) {
-#ifdef _DEBUG
+#ifdef DEBUG
 	va_list argp;
 	char *err_usr = NULL, *err;
 	int n = 10, err_len = 10;
@@ -53,6 +55,6 @@ void debug_msg(int dbg_type, char *file, int line, char *fmt, ...) {
 	free(err);
 
 	free(err_usr);
-#endif
+#endif /* DEBUG */
 }
 
