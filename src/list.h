@@ -65,6 +65,7 @@ typedef struct find_ {/*  Move to listpatron.c */
 
 void list_column_add(list_ *list, char *title);
 void list_column_delete(list_ *list, GtkTreeViewColumn *column);
+void list_column_rename(int col_nr, char *title);
 void list_row_add_empty(list_ *list);
 void list_row_add(list_ *list, char *values[]);
 void list_row_delete(list_ *list, GList *row_refs);
