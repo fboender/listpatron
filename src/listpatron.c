@@ -52,6 +52,10 @@ typedef struct list_ {
 /****************************************************************************
  * Prototyping
  ****************************************************************************/
+/* Personal GTK additions, sort of */
+char *gtk_input_dialog (char *message, char *prefill);
+void gtk_error_dialog (char *fmt, ...);
+
 /* List handling functions */
 void list_column_add (list_ *list, char *title);
 void list_column_delete (list_ *list, GtkTreeViewColumn *column);
@@ -115,6 +119,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 };
 
 static gint ui_nmenu_items = sizeof (ui_menu_items) / sizeof (ui_menu_items[0]);
+GtkWidget *win_main;
 guint sb_context_id;
 GtkWidget *sb_status;
 
@@ -155,6 +160,46 @@ char *gtk_input_dialog (char *message, char *prefill) {
 	gtk_widget_destroy (dia_input);
 
 	return (response);
+}
+
+void gtk_error_dialog (char *fmt, ...) {
+	va_list argp;
+	char *err = NULL;
+	int n = 10, err_len = 10;
+	GtkWidget *dia_error;
+	
+	err = malloc(err_len);
+
+	/* I'd like to unify this into a single function, but it seems that can't 
+	 * be done. I'm getting a '`va_start' used in function with fixed args'
+	 * error. If anyone knows, please mail me */
+	while (n == err_len) { /* Keep trying until msg fits in the buffer */
+		va_start(argp, fmt);
+		n = vsnprintf(err, err_len, fmt, argp);
+		va_end(argp);
+		
+		if (n < -1) {
+			return;
+		} else 
+		if (n > err_len) { /* Throw some more mem at the buf */
+			err_len = (2 * err_len);
+			n = err_len;
+			err = realloc(err, err_len+1);
+		} else {
+			n = 0; /* That'll be enough, thank you */
+		}
+	}
+	
+	dia_error = gtk_message_dialog_new (GTK_WINDOW(win_main),
+						  GTK_DIALOG_DESTROY_WITH_PARENT,
+						  GTK_MESSAGE_ERROR,
+						  GTK_BUTTONS_CLOSE,
+						  err);
+
+	free (err);
+	
+	gtk_dialog_run (GTK_DIALOG (dia_error));
+	gtk_widget_destroy (dia_error);
 }
 
 /****************************************************************************
@@ -381,7 +426,6 @@ int list_import_csv (list_ *list, char *filename) {
 
 	/* Create columns */
 	fgets(buf, 4096, f);
-	printf ("%s\n", buf);
 	for (i = 0; i < strlen(buf); i++) {
 		if (buf[i] == ',') {
 			list_column_add (list, "Column");
@@ -588,14 +632,14 @@ void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
 	if (list_load (list, filename) == -1) {
-		printf ("boem!\n");
+		/* FIXME: show filename; programname should be dynamic */
+		gtk_error_dialog ("Invalid listpatron XML file '%s'.", filename);
+	} else {
+		sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
+		sprintf (sb_message, "File '%s' loaded.", filename);
+		gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
+		free (sb_message);
 	}
-
-	sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
-	sprintf (sb_message, "File '%s' loaded.", filename);
-	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
-	free (sb_message);
-
 }
 
 void ui_file_import_csv_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
@@ -605,15 +649,13 @@ void ui_file_import_csv_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
 	if (list_import_csv (list, filename) == -1) {
-		printf ("Not a correct comma seperated file\n");
+		gtk_error_dialog ("Not a correct Comma Separated file '%s'", filename);
+	} else {
+		sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
+		sprintf (sb_message, "File '%s' loaded.", filename);
+		gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
+		free (sb_message);
 	}
-
-	sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
-	sprintf (sb_message, "File '%s' loaded.", filename);
-	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
-	free (sb_message);
-
-
 }
 
 void ui_menu_file_import_csv_cb (void) {
@@ -907,7 +949,6 @@ GtkWidget *ui_create_statusbar (GtkWidget *window) {
  * Main
  ****************************************************************************/
 int main (int argc, char *argv[]) {
-	GtkWidget *win_main;
 	GtkWidget *vbox_main;
 	GtkWidget *win_scroll;
 
@@ -932,6 +973,7 @@ int main (int argc, char *argv[]) {
 	gtk_container_add (GTK_CONTAINER(win_main), vbox_main);
 
 	gtk_widget_show_all (win_main);
+
 	gtk_main();
 	
 	return (0);
