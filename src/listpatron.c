@@ -33,6 +33,8 @@
 #include <gtk/gtk.h>
 #include <glib-object.h>
 
+#define _DEBUG
+
 /****************************************************************************/
 
 typedef struct list_ {
@@ -59,6 +61,7 @@ void ui_menu_column_add_cb (void);
 void ui_menu_column_rename_cb (void);
 void ui_menu_column_delete_cb (void);
 void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
+void ui_menu_debug_addtestdata_cb (void);
 /* User interface creation functions */
 GtkWidget *ui_create_menubar (GtkWidget *window);
 
@@ -86,6 +89,10 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/_Row"           , NULL , NULL                     , 0 , "<Branch>"                         },
 	{ "/Row/_Add"       , NULL , ui_menu_row_add_cb       , 0 , "<StockItem>"   , GTK_STOCK_ADD    },
 	{ "/Row/_Delete"    , NULL , ui_menu_row_delete_cb    , 0 , "<StockItem>"   , GTK_STOCK_DELETE },
+#ifdef _DEBUG
+	{ "/_Debug"         , NULL , NULL                     , 0 , "<Branch>"                         },
+	{ "/Debug/_Add test data"       , NULL , ui_menu_debug_addtestdata_cb       , 0 , "<Item>"     },
+#endif
 	{ "/_Help"          , NULL , NULL                     , 0 , "<LastBranch>"                     },
 	{ "/_Help/About"    , NULL , NULL                     , 0 , "<Item>"                           },
 };
@@ -432,6 +439,39 @@ void ui_menu_row_delete_cb (void) {
 		gtk_list_store_remove(GTK_LIST_STORE(list->liststore), &iter);
 	}
 	
+}
+
+void ui_menu_debug_addtestdata_cb (void) {
+	int testdata_cols = 3, testdata_rows = 100;
+	int col, row;
+	char *col_headers[] = {"Col A", "Col B", "Col C"};
+	char **col_vals;
+	
+	for (col = 0; col < testdata_cols; col++) {
+		list_column_add (list, col_headers[col]);
+	}
+	
+	for (row = 0; row < testdata_rows; row++) {
+		col_vals = malloc(sizeof(void *) * testdata_cols);
+		
+		for (col = 0; col < testdata_cols; col++) {
+			char *value = NULL;
+			
+			value = malloc(sizeof(char) * (strlen(col_headers[col] + 2)));
+			sprintf (value, "%s-%i", col_headers[col], row);
+
+			col_vals[col] = value;
+		}
+		
+		list_row_add (list, testdata_cols, col_vals);
+		
+		for (col = 0; col < testdata_cols; col++) {
+			printf ("%s\n", col_vals[col]);
+			free (col_vals[col]);
+		}
+
+		free (col_vals);
+	}
 }
 
 /* List *********************************************************************/
