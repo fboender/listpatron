@@ -35,6 +35,9 @@
 #include <libxml/parser.h>
 
 #define _DEBUG
+#define _TEST_COLS 5
+#define _TEST_ROWS 50
+
 
 /****************************************************************************/
 
@@ -42,6 +45,7 @@ typedef struct list_ {
 	GtkTreeView *treeview;
 	GtkListStore *liststore;
 	int nr_of_cols;
+	int nr_of_rows;
 } list_;
 
 /****************************************************************************
@@ -65,6 +69,7 @@ void ui_menu_column_rename_cb (void);
 void ui_menu_column_delete_cb (void);
 void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
 void ui_menu_debug_addtestdata_cb (void);
+void ui_menu_debug_addtestrows_cb (void);
 /* User interface creation functions */
 GtkWidget *ui_create_menubar (GtkWidget *window);
 
@@ -95,6 +100,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 #ifdef _DEBUG
 	{ "/_Debug"         , NULL , NULL                     , 0 , "<Branch>"                         },
 	{ "/Debug/_Add test data"       , NULL , ui_menu_debug_addtestdata_cb       , 0 , "<Item>"     },
+	{ "/Debug/Add test _rows"       , NULL , ui_menu_debug_addtestrows_cb       , 0 , "<Item>"     },
 #endif
 	{ "/_Help"          , NULL , NULL                     , 0 , "<LastBranch>"                     },
 	{ "/_Help/About"    , NULL , NULL                     , 0 , "<Item>"                           },
@@ -337,7 +343,10 @@ void list_row_add_empty (list_ *list) {
 	for (i = 0; i < list->nr_of_cols; i++) {
 		gtk_list_store_set (list->liststore, &treeiter, i, "", -1);
 	}
+
+	list->nr_of_rows++;
 }
+
 void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
 	GtkTreeIter treeiter;
 	int i;
@@ -346,6 +355,8 @@ void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
 	for (i = 0; i < nr_of_cols; i++) {
 		gtk_list_store_set (list->liststore, &treeiter, i, values[i], -1);
 	}
+
+	list->nr_of_rows++;
 }
 
 list_ *list_create (void) {
@@ -356,6 +367,7 @@ list_ *list_create (void) {
 	list->treeview   = NULL;
 	list->liststore  = NULL;
 	list->nr_of_cols = 0;
+	list->nr_of_rows = 0;
 
 	list->treeview  = GTK_TREE_VIEW (gtk_tree_view_new());
 	
@@ -539,7 +551,6 @@ void ui_menu_row_delete_cb (void) {
 }
 
 void ui_menu_debug_addtestdata_cb (void) {
-	int testdata_cols = 5, testdata_rows = 50;
 	int col, row;
 	char *col_headers[] = {
 		"Col A", 
@@ -549,31 +560,72 @@ void ui_menu_debug_addtestdata_cb (void) {
 		"Col E"
 	};
 	char **col_vals;
+	int count_start = list->nr_of_rows;
 	
-	for (col = 0; col < testdata_cols; col++) {
+	for (col = 0; col < _TEST_COLS; col++) {
 		list_column_add (list, col_headers[col]);
 	}
 	
-	for (row = 0; row < testdata_rows; row++) {
-		col_vals = malloc(sizeof(void *) * testdata_cols);
+	for (row = 0; row < _TEST_ROWS; row++) {
+		col_vals = malloc(sizeof(void *) * _TEST_COLS);
 		
-		for (col = 0; col < testdata_cols; col++) {
+		for (col = 0; col < _TEST_COLS; col++) {
 			char *value = NULL;
 			
 			value = malloc(sizeof(char) * (strlen(col_headers[col] + 2)));
-			sprintf (value, "%s-%02i", col_headers[col], row);
+			sprintf (value, "%s-%02i", col_headers[col], count_start+row);
 
 			col_vals[col] = value;
 		}
 		
-		list_row_add (list, testdata_cols, col_vals);
+		list_row_add (list, _TEST_COLS, col_vals);
 		
-		for (col = 0; col < testdata_cols; col++) {
+		for (col = 0; col < _TEST_COLS; col++) {
 			free (col_vals[col]);
 		}
 
 		free (col_vals);
 	}
+}
+
+void ui_menu_debug_addtestrows_cb (void) {
+	char *add_nr_of_rows_text = NULL;
+	int add_nr_of_rows = 0;
+	int col, row;
+	char *col_headers[] = {
+		"Col A", 
+		"Col B", 
+		"Col C", 
+		"Col D", 
+		"Col E"
+	};
+	char **col_vals;
+	int count_start = list->nr_of_rows;
+	
+	add_nr_of_rows_text = gtk_input_dialog ("Add how many rows?", "50");
+	add_nr_of_rows = atoi (add_nr_of_rows_text);
+	
+	for (row = 0; row < add_nr_of_rows; row++) {
+		col_vals = malloc(sizeof(void *) * _TEST_COLS);
+		
+		for (col = 0; col < _TEST_COLS; col++) {
+			char *value = NULL;
+			
+			value = malloc(sizeof(char) * (strlen(col_headers[col] + 2)));
+			sprintf (value, "%s-%02i", col_headers[col], count_start+row);
+
+			col_vals[col] = value;
+		}
+		
+		list_row_add (list, _TEST_COLS, col_vals);
+		
+		for (col = 0; col < _TEST_COLS; col++) {
+			free (col_vals[col]);
+		}
+
+		free (col_vals);
+	}
+
 }
 
 /* List *********************************************************************/
