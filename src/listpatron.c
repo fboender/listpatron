@@ -202,6 +202,39 @@ void gtk_error_dialog (char *fmt, ...) {
 	gtk_widget_destroy (dia_error);
 }
 
+void gtk_statusbar_msg (char *fmt, ...) {
+	va_list argp;
+	char *msg = NULL;
+	int n = 10, msg_len = 10;
+	
+	msg = malloc(msg_len);
+
+	/* I'd like to unify this into a single function, but it seems that can't 
+	 * be done. I'm getting a '`va_start' used in function with fixed args'
+	 * msgor. If anyone knows, please mail me */
+	while (n == msg_len) { /* Keep trying until msg fits in the buffer */
+		va_start(argp, fmt);
+		n = vsnprintf(msg, msg_len, fmt, argp);
+		va_end(argp);
+		
+		if (n < -1) {
+			return;
+		} else 
+		if (n > msg_len) { /* Throw some more mem at the buf */
+			msg_len = (2 * msg_len);
+			n = msg_len;
+			msg = realloc(msg, msg_len+1);
+		} else {
+			n = 0; /* That'll be enough, thank you */
+		}
+	}
+	
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, msg);
+
+	free (msg);
+}
+
+
 /****************************************************************************
  * List handling functions
  ****************************************************************************/
@@ -418,7 +451,7 @@ list_ *list_create (void) {
 int list_import_csv (list_ *list, char *filename) {
 	FILE *f = NULL;
 	char buf[4096];
-	int i = 0;
+	int i = 0, failed_rows = 0;
 	
 	if (!(f = fopen (filename, "r"))) {
 		return (-1);
@@ -435,6 +468,8 @@ int list_import_csv (list_ *list, char *filename) {
 	if (list->nr_of_cols < 1) {
 		return (-1); /* Not a valid CSV */
 	}
+
+	fseek (f, 0, SEEK_SET);
 	
 	while (fgets(buf, 4096, f)) {
 		char *field_start = NULL;
@@ -455,7 +490,7 @@ int list_import_csv (list_ *list, char *filename) {
 						&write,
 						&error);
 				if (error != NULL) {
-					printf ("Error : %i in %s\n", error->code, buf);
+					printf ("Error %i: Couldn't convert '%s' to UTF8.\n", error->code, field_start);
 				}
 						
 				field_start = &(buf[i+1]);
@@ -464,6 +499,7 @@ int list_import_csv (list_ *list, char *filename) {
 		}
 		
 		if (col != list->nr_of_cols) {
+			failed_rows++;
 			printf ("Invalid row in comma seperated file\n");
 		} else {
 			list_row_add (list, list->nr_of_cols, rowdata);
@@ -473,7 +509,7 @@ int list_import_csv (list_ *list, char *filename) {
 	
 	fclose (f);
 
-	return (0);
+	return (failed_rows);
 }
 
 int list_load (list_ *list, char *filename) {
@@ -608,7 +644,6 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	GtkTreeViewColumn *column;
 	char *path_str;
 	int col, row;
-	char *sb_message;
 
 	gtk_tree_view_get_cursor (list->treeview, &path, &column);
 	path_str = gtk_tree_path_to_string (path);
@@ -616,10 +651,7 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 
 	col = GPOINTER_TO_UINT(g_object_get_data (G_OBJECT(column), "col_nr"));
 
-	sb_message = malloc(sizeof(char) * (13 + 40 + 1));
-	sprintf (sb_message, "Row %i, Column %i", row+1, col+1);
-	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
-	free (sb_message);
+	gtk_statusbar_msg ("Row %i, Column %i", row+1, col+1);
 }
 
 /* File open callbacks */
@@ -644,17 +676,14 @@ void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 
 void ui_file_import_csv_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
-	char *sb_message = NULL;
+	int rows = -1;
 	
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
 	if (list_import_csv (list, filename) == -1) {
 		gtk_error_dialog ("Not a correct Comma Separated file '%s'", filename);
 	} else {
-		sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
-		sprintf (sb_message, "File '%s' loaded.", filename);
-		gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
-		free (sb_message);
+		gtk_statusbar_msg ("File %s imported. %i rows read.", filename, list->nr_of_rows, rows);
 	}
 }
 
@@ -709,16 +738,12 @@ void ui_menu_file_open_cb (void) {
 
 void ui_file_save_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
-	char *sb_message = NULL;
 	
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
 	list_save (list, filename);
 
-	sb_message = malloc(sizeof(char) * (14 + strlen(filename) + 1));
-	sprintf (sb_message, "File '%s' saved.", filename);
-	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
-	free (sb_message);
+	gtk_statusbar_msg ("File '%s' saved.", filename);
 }
 
 
@@ -848,7 +873,7 @@ void ui_menu_debug_addtestdata_cb (void) {
 		free (col_vals);
 	}
 
-	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, "Added test data.");
+	gtk_statusbar_msg ("Test data added.");
 }
 
 void ui_menu_debug_addtestrows_cb (void) {
@@ -889,7 +914,7 @@ void ui_menu_debug_addtestrows_cb (void) {
 		free (col_vals);
 	}
 
-	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, "Added test rows.");
+	gtk_statusbar_msg ("Added %i test rows.", add_nr_of_rows);
 	
 }
 
@@ -940,7 +965,7 @@ GtkWidget *ui_create_statusbar (GtkWidget *window) {
 
 	sb_status = gtk_statusbar_new();
 	sb_context_id = gtk_statusbar_get_context_id(GTK_STATUSBAR (sb_status), "main");
-	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, "Ready.");
+	gtk_statusbar_msg ("Ready.");
 
 	return (sb_status);
 }
