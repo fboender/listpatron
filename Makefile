@@ -10,7 +10,7 @@ main: listpatron
 listpatron: ui_rulelist.o ui_sort.o list.o debug.o libgtkext.o listpatron.o ui_import.o ui_export.o ui_find.o
 	$(CC) -Wall -g libgtkext.o debug.o listpatron.o libxmlext.o list.o ui_rulelist.o ui_sort.o ui_import.o ui_export.o ui_find.o $(LIBS) $(INCS) -o listpatron 
 
-listpatron.o: listpatron.c listpatron.h splash.h debug.h list.h splash.h libgtkext.h ui_sort.h ui_import.h ui_export.h ui_find.h
+listpatron.o: listpatron.c listpatron.h splash.h debug.h list.h splash.h libgtkext.h ui_sort.h ui_import.h ui_export.h ui_find.h menu_def.h
 	$(CC) $(FLAGS) $(INCS) listpatron.c
 
 # User interface

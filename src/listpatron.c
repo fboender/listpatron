@@ -211,7 +211,7 @@ void ui_menu_file_save_cb(void) {
 
 		if (response == GTK_RESPONSE_ACCEPT) {
 			new_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_save));
-			list_save(list, NULL);
+			list_save(list, new_filename);
 			gtk_widget_destroy(dia_file_save);
 		} else {
 			gtk_widget_destroy(dia_file_save);
@@ -810,6 +810,32 @@ GtkWidget *ui_create_menu(void) {
 	return (menubar);
 }
 
+GtkWidget *ui_create_toolbar(void) {
+	GtkWidget *toolbar;
+	GError *error;
+	GtkAccelGroup *accel_group;
+
+	action_group = gtk_action_group_new ("ToolbarActions");
+	gtk_action_group_add_actions (action_group, entries, G_N_ELEMENTS (entries), win_main);
+
+	ui_manager = gtk_ui_manager_new ();
+	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
+
+	accel_group = gtk_ui_manager_get_accel_group (ui_manager);
+	gtk_window_add_accel_group (GTK_WINDOW (win_main), accel_group);
+
+	error = NULL;
+	if (!gtk_ui_manager_add_ui_from_string (ui_manager, ui_description_toolbar, -1, &error)) {
+		g_message ("building menus failed: %s", error->message);
+		g_error_free (error);
+		exit (EXIT_FAILURE);
+	}
+
+	toolbar = gtk_ui_manager_get_widget(ui_manager, "/ToolbarFile");
+
+	return (toolbar);
+}
+
 
 /****************************************************************************
  * Main
@@ -827,15 +853,16 @@ int main(int argc, char *argv[]) {
 	gtk_window_set_default_size(GTK_WINDOW(win_main), 500, 400);
 	g_signal_connect (GTK_OBJECT(win_main), "delete-event", G_CALLBACK(ui_menu_file_quit_cb), NULL);
 	
-	vbox_main = gtk_vbox_new(FALSE, 2);
+	vbox_main = gtk_vbox_new(FALSE, 0);
 
 	win_scroll = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(win_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(win_scroll), ui_create_tree_view());
 	
 	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menu()),  FALSE,TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_listtitle()), FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(win_scroll), TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_toolbar()), FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_listtitle()), FALSE, TRUE, 2);
+	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(win_scroll), TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_statusbar(win_main)), FALSE, TRUE, 0);
 
 	gtk_container_add(GTK_CONTAINER(win_main), vbox_main);

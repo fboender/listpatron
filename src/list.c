@@ -450,7 +450,9 @@ void list_row_add(list_ *list, char *values[]) {
 void list_row_delete(list_ *list, GList *row_refs) {
 	GList *iter = NULL;
 
-	assert(row_refs != NULL);
+	if (row_refs == NULL) { /* No selected rows */
+		return;
+	}
 
 	iter = row_refs;
 	while (iter != NULL) {
