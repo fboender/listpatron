@@ -460,7 +460,8 @@ int list_import_csv (list_ *list, char *filename) {
 	/* Create columns */
 	fgets(buf, 4096, f);
 	for (i = 0; i < strlen(buf); i++) {
-		if (buf[i] == ',') {
+		printf ("%i - %i\n", i, strlen(buf)-1);
+		if (buf[i] == ',' || i == (strlen(buf) - 1)) {
 			list_column_add (list, "Column");
 		}
 	}
@@ -479,7 +480,7 @@ int list_import_csv (list_ *list, char *filename) {
 		l = strlen(buf);
 		field_start = &(buf[0]);
 		for (i = 0; i < l; i++) {
-			if (buf[i] == ',' && col < list->nr_of_cols) {
+			if ((buf[i] == ',' || i == (l-1)) && col < list->nr_of_cols) {
 				int read, write;
 				GError *error = NULL;
 				buf[i] = '\0';
