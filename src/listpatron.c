@@ -33,6 +33,7 @@
 #include <gtk/gtk.h>
 #include <glib-object.h>
 #include <libxml/parser.h>
+#include <libxml/xpath.h>
 
 #include "splash.h"
 
@@ -46,8 +47,15 @@
 /****************************************************************************/
 
 typedef struct list_ {
-	char *title;
 	char *filename;
+
+	/* Info */
+	char *version;
+	char *title;
+	char *author;
+	char *description;
+	char *keywords;
+
 	GtkTreeView *treeview;
 	GtkListStore *liststore;
 	int nr_of_cols;
@@ -69,12 +77,19 @@ typedef struct export_ {
 #define IMPORT_CSV_HEADER         1 << 0 /* First row contains column header titles */
 #define IMPORT_CSV_QUOTE_ENCLODED 1 << 1 /* Fields are enclosed in quotes (single or double) */
 
+#define DBG_ERR 1
+#define DBG_WARN 2
+
 /****************************************************************************
  * Prototyping
  ****************************************************************************/
 /* Personal GTK additions, sort of */
 char *gtk_input_dialog (char *message, char *prefill);
 void gtk_error_dialog (char *fmt, ...);
+
+/* libxml extending functions */
+xmlNodeSet *xml_get_nodeset (xmlDocPtr doc, char *xpath);
+char *xml_get_element_content (xmlDocPtr doc, char *xpath);
 
 /* List handling functions */
 void list_column_add (list_ *list, char *title);
@@ -89,6 +104,7 @@ int list_export_ps (list_ *list, char *filename, int orientation);
 int list_export_html (list_ *list, char *filename);
 int list_load (list_ *list, char *filename);
 int list_save (list_ *list, char *filename);
+
 /* Menu callback functions */
 void ui_menu_file_import_csv_cb (void);
 void ui_menu_file_export_ps_cb (void);
@@ -105,9 +121,11 @@ void ui_menu_row_delete_cb (void);
 void ui_menu_debug_addtestdata_cb (void);
 void ui_menu_debug_addtestrows_cb (void);
 void ui_menu_help_about_cb (void);
+
 /* Various Callback functions */
 void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data);
 void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
+
 /* User interface creation functions */
 GtkWidget *ui_create_menubar (GtkWidget *window);
 
@@ -155,6 +173,43 @@ guint sb_context_id;
 GtkWidget *sb_status;
 
 list_ *list = NULL;
+
+/****************************************************************************
+ * Debugging functions
+ ****************************************************************************/
+void debug_msg (int dbg_type, char *file, int line, char *fmt, ...) {
+#ifdef _DEBUG
+	va_list argp;
+	char *err_usr = NULL, *err;
+	int n = 10, err_len = 10;
+	
+	err_usr = malloc(err_len);
+
+	while (n == err_len) { /* Keep trying until msg fits in the buffer */
+		va_start(argp, fmt);
+		n = vsnprintf(err_usr, err_len, fmt, argp);
+		va_end(argp);
+		
+		if (n < -1) {
+			return;
+		} else 
+		if (n > err_len) { /* Throw some more mem at the buf */
+			err_len = (2 * err_len);
+			n = err_len;
+			err_usr = realloc(err_usr, err_len+1);
+		} else {
+			n = 0; /* That'll be enough, thank you */
+		}
+	}
+	
+	err = malloc(sizeof(char) * (12 + strlen(file) + 8 + strlen(err_usr) + 2));
+	sprintf (err, "DEBUG: %s:%i : %s\n", file, line, err_usr);
+	fprintf (stderr, err);
+
+	free (err_usr);
+	free (err);
+#endif
+}
 
 /****************************************************************************
  * gtk_input_dialog
@@ -274,6 +329,37 @@ void gtk_statusbar_msg (char *fmt, ...) {
 	free (msg);
 }
 
+/****************************************************************************
+ * libxml2 extending functions
+ ****************************************************************************/
+xmlNodeSet *xml_get_nodeset (xmlDocPtr doc, char *xpath){
+	xmlXPathContextPtr context;
+	xmlXPathObjectPtr result;
+
+	context = xmlXPathNewContext(doc);
+	result = xmlXPathEvalExpression(xpath, context);
+	if (xmlXPathNodeSetIsEmpty(result->nodesetval)) {
+		return NULL;
+	}
+	xmlXPathFreeContext(context);
+
+	return (result->nodesetval);
+}
+
+char *xml_get_element_content (xmlDocPtr doc, char *xpath) {
+	xmlXPathContextPtr context;
+	xmlXPathObjectPtr result;
+	
+	context = xmlXPathNewContext(doc);
+	result = xmlXPathEvalExpression(xpath, context);
+	if (xmlXPathNodeSetIsEmpty(result->nodesetval)) {
+		return (NULL);
+	}
+	xmlXPathFreeContext(context);
+
+	/* FIXME: extra error checking */
+	return (result->nodesetval->nodeTab[0]->children->content);
+}
 
 /****************************************************************************
  * List handling functions
@@ -492,12 +578,16 @@ list_ *list_create (void) {
 	GtkTreeSelection *treeselection;
 	list = malloc(sizeof(list_));
 
-	list->title      = strdup("New list");
-	list->filename   = NULL;
-	list->treeview   = NULL;
-	list->liststore  = NULL;
-	list->nr_of_cols = 0;
-	list->nr_of_rows = 0;
+	list->version     = strdup("0.1");
+	list->title       = strdup("New list");
+	list->author      = strdup("");
+	list->description = strdup("");
+	list->keywords    = strdup("");
+	list->filename    = NULL;
+	list->treeview    = NULL;
+	list->liststore   = NULL;
+	list->nr_of_cols  = 0;
+	list->nr_of_rows  = 0;
 
 	list->treeview  = GTK_TREE_VIEW (gtk_tree_view_new());
 	gtk_signal_connect (
@@ -556,7 +646,7 @@ int list_import_csv (list_ *list, char *filename, char delimiter) {
 						&write,
 						&error);
 				if (error != NULL) {
-					printf ("Error %i: Couldn't convert '%s' to UTF8.\n", error->code, field_start);
+					debug_msg (DBG_WARN, __FILE__, __LINE__, "Error %i: Couldn't convert '%s' to UTF8.", error->code, field_start);
 				}
 						
 				field_start = &(buf[i+1]);
@@ -566,7 +656,7 @@ int list_import_csv (list_ *list, char *filename, char delimiter) {
 		
 		if (col != list->nr_of_cols) {
 			failed_rows++;
-			printf ("Invalid row in comma seperated file\n");
+			debug_msg (DBG_WARN, __FILE__, __LINE__, "Invalid row in character seperated file '%s'.", filename);
 		} else {
 			list_row_add (list, list->nr_of_cols, rowdata);
 		}
@@ -758,103 +848,116 @@ int list_export_html (list_ *list, char *filename) {
 	return (0);
 }
 
-int list_load (list_ *list, char *filename) {
-	xmlDocPtr doc;
-	xmlNodePtr 
-		node_state = NULL, 
-		node_header = NULL, 
-		node_rowdata = NULL;
-	xmlNodePtr node_appstate_pos, node_appstate_dim;
-	xmlNodePtr node_cols, node_rows;
-	int appstate_width, appstate_height, appstate_posx, appstate_posy;
+char *xml_element_get_value (xmlNodePtr node_parent, char *element_name) {
+	if (node_parent->type == XML_ELEMENT_NODE) {
+		if (strcmp(node_parent->name, element_name) == 0) {
+			return (node_parent->children->content);
+		}
+	}
+
+	return (NULL);
+}
+
+int list_load_filters (list_ *list, xmlNodeSetPtr node_filters) {
+	printf ("Filters are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	return (0);
+}
+int list_load_sorts (list_ *list, xmlNodeSetPtr node_sorts) {
+	printf ("Sorts are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	return (0);
+}
+int list_load_reports (list_ *list, xmlNodeSetPtr node_reports) {
+	printf ("Reports are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	return (0);
+}
+
+void list_load_header (list_ *list, xmlNodeSetPtr nodeset_header) {
+	int i;
+
+	for (i = 0; i < nodeset_header->nodeNr; i++) {
+		/* FIXME: Might be empty: <columnname></columnname> */
+		list_column_add (list, nodeset_header->nodeTab[i]->children->content);
+	}
+
+	list->nr_of_cols = nodeset_header->nodeNr;
+}
+
+void list_load_rows (list_ *list, xmlNodeSetPtr nodeset_rows) {
+	int i;
+	xmlNodePtr node_iter;
 	char **rowdata;
 	
-	if ((doc = xmlReadFile (filename, NULL, 0)) == NULL) {
-		return (-1);
-	}
-
-	/* Check if XML document is valid listpatron XML file (sort of) */
-	/* I want to shoot myself for this. Too lazy to write a DTD, besides, it
-	 * wouldn't find all errors */
-	if (doc->children) { /* <list> */
-		if (doc->children->children) { /* <list> contents */
-			if (doc->children->children->next) { /* <state> */
-				node_state = doc->children->children->next;
-
-				if (node_state->next) {
-					if (node_state->next->next) { /* <header> */
-						node_header = node_state->next->next;
-						if (node_header->next) { 
-							if (node_header->next->next) { /* rowdata */
-								node_rowdata = node_header->next->next;
-							}
-						}
-					}
+	for (i = 0; i < nodeset_rows->nodeNr; i++) {
+		int j = 0;
+		
+		node_iter = nodeset_rows->nodeTab[i]->children;
+		rowdata = malloc(sizeof(char *) * list->nr_of_cols);
+		
+		while (node_iter != NULL) {
+			if (node_iter->type == XML_ELEMENT_NODE) {
+				if (node_iter->children != NULL) {
+					rowdata[j] = node_iter->children->content;
+				} else {
+					rowdata[j] = NULL;
 				}
+				j++;
 			}
+			node_iter = node_iter->next;
 		}
+
+		list_row_add (list, list->nr_of_cols, rowdata);
+		free (rowdata);
 	}
+}
 
-	if (!node_state || !node_header || !node_rowdata) {
-		return (-1); /* Invalid listpatron file */
-	}
-
-	/* Read application state and ajust accordingly */
-	node_appstate_pos = node_state->children->next->children->next;
-	appstate_posx = atoi(node_appstate_pos->children->content);
-	appstate_posy = atoi(node_appstate_pos->next->next->children->content);
-	node_appstate_dim = node_state->children->next->next->next->children->next;
-	appstate_width = atoi(node_appstate_dim->children->content);
-	appstate_height = atoi(node_appstate_dim->next->next->children->content);
-
-	gtk_window_move (GTK_WINDOW(win_main), appstate_posx, appstate_posy);
-	gtk_window_resize (GTK_WINDOW(win_main), appstate_width, appstate_height);
-
-	/* Read columns and adjust list */
-	list->nr_of_cols = 0;
-	node_cols = node_header->children;
-
-	while (node_cols != NULL) {
-		if (node_cols->type == XML_ELEMENT_NODE) {
-			if (node_cols->children == NULL) {
-				list_column_add (list, "");
-			} else {
-				list_column_add (list, node_cols->children->content);
-			}
-		}
-		node_cols = node_cols->next;
-	}
-
-	/* Read rows and add to list */
-	rowdata = malloc (sizeof(char *) * list->nr_of_cols);
-	node_rows = node_rowdata->children;
+int list_load (list_ *list, char *filename) {
+	xmlDocPtr doc;
+	int pos_x, pos_y, dim_width, dim_height;
+	xmlNodeSetPtr nodeset = NULL;
+	xmlValidCtxtPtr valid_ctxt = NULL;
 	
-	while (node_rows != NULL) {
-		if (node_rows->type == XML_ELEMENT_NODE) {
-			int i = 0;
-			node_cols = node_rows->children;
-			while (node_cols != NULL) {
-				if (node_cols->type == XML_ELEMENT_NODE) {
-					if (node_cols->children == NULL) {
-						rowdata[i] = NULL;
-					} else {
-						rowdata[i] = node_cols->children->content;
-					}
-					i++;
-				}
-				node_cols = node_cols->next;
-			}
-
-			if (i == list->nr_of_cols) {
-				list_row_add (list, list->nr_of_cols, rowdata);
-			} else {
-				printf ("Invalid row in file\n");
-			}
-		}
-		node_rows = node_rows->next;
+	if ((doc = xmlReadFile (filename, NULL, XML_PARSE_DTDVALID | XML_PARSE_NOCDATA)) == NULL) {
+		return (-1); /* Couldn't open file */
+	}
+	
+	valid_ctxt = xmlNewValidCtxt();
+	if (!xmlValidateDocument (valid_ctxt, doc)) {
+		return (-2); /* Invalid Listpatron file */
 	}
 
-	free (rowdata);
+	/* FIXME: title, author, etc are not required in the XML so NULL can be returned */
+	list_title_set(xml_get_element_content(doc, "/list/info/title"));
+	list->version = strdup(xml_get_element_content(doc, "/list/info/version"));
+	list->author = strdup(xml_get_element_content(doc, "/list/info/author"));
+	list->description = strdup(xml_get_element_content(doc, "/list/info/description"));
+	list->keywords = strdup(xml_get_element_content(doc, "/list/info/keywords"));
+
+	pos_x = atoi(xml_get_element_content(doc, "/list/state/window/position/x"));
+	pos_y = atoi(xml_get_element_content(doc, "/list/state/window/position/y"));
+	dim_width = atoi(xml_get_element_content(doc, "/list/state/window/dimensions/width"));
+	dim_height = atoi(xml_get_element_content(doc, "/list/state/window/dimensions/height"));
+
+	if ((nodeset = xml_get_nodeset(doc, "/list/filters/filter")) != NULL) {
+		list_load_filters (list, nodeset);
+	}
+	if ((nodeset = xml_get_nodeset(doc, "/list/sorts/sort")) != NULL) {
+		list_load_sorts (list, nodeset);
+	}
+	
+	if ((nodeset = xml_get_nodeset(doc, "/list/reports/report")) != NULL) {
+		list_load_reports (list, nodeset);
+	}
+	
+	if ((nodeset = xml_get_nodeset(doc, "/list/header/columnname")) != NULL) {
+		list_load_header (list, nodeset);
+	}
+	
+	if ((nodeset = xml_get_nodeset(doc, "/list/rows/row")) != NULL) {
+		list_load_rows (list, nodeset);
+	}
+
+	gtk_window_move (GTK_WINDOW(win_main), pos_x, pos_y);
+	gtk_window_resize (GTK_WINDOW(win_main), dim_width, dim_height);
 
 	list->filename = strdup(filename);
 	list->modified = FALSE;
@@ -970,12 +1073,16 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
 	char *sb_message = NULL;
+	int err_nr;
 	
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
-	if (list_load (list, filename) == -1) {
-		/* FIXME: show filename; programname should be dynamic */
-		gtk_error_dialog ("Invalid listpatron XML file '%s'.", filename);
+	if ((err_nr = list_load(list, filename)) != 0) {
+		switch (err_nr) {
+			case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
+			case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
+			default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
+		}
 	} else {
 		sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
 		sprintf (sb_message, "File '%s' loaded.", filename);
@@ -1262,9 +1369,7 @@ void ui_menu_file_quit_cb (void) {
 
 		switch (result) {
 			case GTK_RESPONSE_YES: 
-				printf ("ui_menu_file_quit: accept - pre\n");
 				ui_menu_file_save_cb();
-				printf ("ui_menu_file_quit: accept - post\n");
 				break;
 			case GTK_RESPONSE_CANCEL:
 				return;
