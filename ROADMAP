@@ -6,7 +6,7 @@ The following releases will contain the following features.
 
 0.1: Sorting
 0.2: Filters / Field types (int/bool/str/etc)
-0.3: Reports
+0.3: Reports / Configuration (local (list) & global)
 0.4: Printing / More imports & exports
 0.5: Additional features / I18n / Additional views?
 0.6: Gnome-ifying / ??
