@@ -1,4 +1,6 @@
 The road to v1.0.
+-----------------
+DISCLAIMER: No garantuees.
 
 The following releases will contain the following features.
 
@@ -11,7 +13,7 @@ The following releases will contain the following features.
 0.7: Plugins???
 0.8: ??? (large feature freeze)
 1.0pre1: Bugfixing / Small additions (small feature freeze)
-1.0pre2: bugfixing.
+1.0pre2: Bugfixing.
 1.0
 
 Things which would be cool to implement:
