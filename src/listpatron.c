@@ -325,11 +325,11 @@ void ui_menu_column_rename_cb(void) {
 	}
 
 	if (column == NULL) {
+		gtk_statusbar_msg("No column selected");
 		return;
 	}
 
 	col_nr = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
-
 
 	column_name = gtk_input_dialog(
 			"Enter the column name", 
@@ -349,6 +349,8 @@ void ui_menu_column_delete_cb(void) {
 	gtk_tree_view_get_cursor(treeview, &path, &column);
 	if (path != NULL) {
 		gtk_tree_path_free(path);
+	} else {
+		gtk_statusbar_msg("No column selected");
 	}
 
 	list_column_delete(list, column);
@@ -367,6 +369,8 @@ void ui_menu_row_add_cb(void) {
 			gtk_widget_grab_focus(GTK_WIDGET(treeview));
 			gtk_tree_path_free(path);
 		}
+	} else {
+		gtk_error_dialog("There are no columns in the list yet.");
 	}
 }
 
@@ -572,6 +576,80 @@ GtkWidget *ui_create_tree_view(void) {
 	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_MULTIPLE);
 
 	return (GTK_WIDGET(treeview));
+}
+
+/* FIXME: We need a real help system with a nice looking manual */
+void ui_menu_help_usage_cb(void) {
+	GtkWidget *win;
+	GtkStyle *style;
+	GtkWidget *label;
+	gchar *label_txt = NULL;
+	GtkWidget *vbox;
+	GtkWidget *frame;
+	GtkWidget *btn_ok;
+	GdkBitmap *mask;
+	
+	win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(win), "Usage");
+	gtk_widget_realize(win);
+
+	style = gtk_widget_get_style( win );
+//    logo = gdk_pixmap_create_from_xpm_d(
+//			win->window,  
+//			&mask,
+//			&style->bg[GTK_STATE_NORMAL],
+//			(gchar **)splash_xpm );
+//    pixmapwid = gtk_pixmap_new( logo, mask );
+//    gtk_widget_show( pixmapwid );
+
+	frame = gtk_frame_new(NULL);
+	btn_ok = gtk_button_new_with_mnemonic("_Ok");
+
+	label_txt = g_strdup_printf(
+			"<big><b>Using ListPatron</b></big>\n\n" \
+
+			"<b>Manipulating lists</b>\n" \
+			"To start a new list, first add some columns by choosing \n" \
+			"the <i><u>D</u>ata - <u>C</u>olumns - <u>A</u>dd</i> menu option. Next add rows\n" \
+			"to the list using the <i><u>D</u>ata - <u>R</u>ows - <u>A</u>dd</i> menu option.\n" \
+			"You can now maneuver through the list using the arrow keys\n" \
+			"or by clicking in the list with the mouse. To edit the\n" \
+			"contents of a cell, press <i>enter</i> on the cell.\n\n" \
+
+			"<b>Sorting</b>\n" \
+			"Sorting the list can be accomplished by clicking on the\n" \
+			"columns headers. Clicking on the them again will reverse the\n" \
+			"sort direction. If you need to sort on more than one column\n" \
+			"you can create a sorting rule by choosing the\n" \
+			"<i><u>D</u>ata - <u>S</u>ort - <u>E</u>dit sorting rules</i>. In the dialog, click\n" \
+			"on the <i><u>N</u>ew</i> button. Give the rule a name and drag the\n" \
+			"columns you want to be sorted on first to the top of the list.\n" \
+			"If you want to reverse the sorting order for a certain columns,\n" \
+			"you can do so by choosing <i>Sort <u>A</u>scending</i> or <i>Sort D<u>e</u>scending</i>.\n\n"
+			"To apply the new sorting rule, open the <i><u>D</u>ata - <u>S</u>ort</i>\n" \
+			"menu and select the sorting rule from the list.\n"
+	);
+	label = gtk_label_new(NULL);
+	gtk_label_set_markup(GTK_LABEL(label), label_txt);
+	g_free(label_txt);
+	vbox = gtk_vbox_new(FALSE, 0);
+	
+	g_signal_connect(
+			btn_ok,
+			"clicked",
+			GTK_SIGNAL_FUNC(dialog_about_btn_ok_cb),
+			win);
+
+	gtk_box_pack_start(GTK_BOX(vbox), label, TRUE, TRUE, 5);
+	gtk_box_pack_start(GTK_BOX(vbox), btn_ok, TRUE, TRUE, 5);
+	
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 10);
+
+	gtk_container_add(GTK_CONTAINER(frame), vbox);
+	gtk_container_set_border_width(GTK_CONTAINER(frame), 5);
+	gtk_container_add(GTK_CONTAINER(win), frame);
+
+	gtk_widget_show_all(win);
 }
 
 void ui_menu_help_about_cb(void) {
