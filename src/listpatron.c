@@ -54,6 +54,7 @@ list_ *list_create (void);
 /* Callback functions */
 void ui_menu_file_open_cb (void);
 void ui_menu_row_add_cb (void);
+void ui_menu_row_delete_cb (void);
 void ui_menu_column_add_cb (void);
 void ui_menu_column_rename_cb (void);
 void ui_menu_column_delete_cb (void);
@@ -84,6 +85,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/Column/_Rename" , NULL , ui_menu_column_rename_cb , 0 , "<Item>"                           },
 	{ "/_Row"           , NULL , NULL                     , 0 , "<Branch>"                         },
 	{ "/Row/_Add"       , NULL , ui_menu_row_add_cb       , 0 , "<StockItem>"   , GTK_STOCK_ADD    },
+	{ "/Row/_Delete"    , NULL , ui_menu_row_delete_cb    , 0 , "<StockItem>"   , GTK_STOCK_DELETE },
 	{ "/_Help"          , NULL , NULL                     , 0 , "<LastBranch>"                     },
 	{ "/_Help/About"    , NULL , NULL                     , 0 , "<Item>"                           },
 };
@@ -229,7 +231,6 @@ void list_column_add (list_ *list, char *title) {
 }
 
 void list_column_delete (list_ *list, GtkTreeViewColumn *column) {
-	void *temp_col = NULL;
 	int liststore_remove_col_nr = -1;
 	GList *columns = NULL;
 
@@ -349,7 +350,7 @@ list_ *list_create (void) {
 	list->treeview  = GTK_TREE_VIEW (gtk_tree_view_new());
 	
 	treeselection = gtk_tree_view_get_selection (GTK_TREE_VIEW(list->treeview));
-	gtk_tree_selection_set_mode (treeselection, GTK_SELECTION_NONE);
+	gtk_tree_selection_set_mode (treeselection, GTK_SELECTION_SINGLE);
 	
 	return (list);
 }
@@ -414,6 +415,23 @@ void ui_menu_column_delete_cb (void) {
 	gtk_tree_view_get_cursor (list->treeview, &path, &column);
 
 	list_column_delete (list, column);
+}
+
+void ui_menu_row_delete_cb (void) {
+	GtkTreePath *path;
+	GtkTreeViewColumn *column; /* Unused */
+	GtkTreeIter iter;
+
+	gtk_tree_view_get_cursor (list->treeview, &path, &column);
+	
+	if (path != NULL) { /* Row selected? */
+		if (!gtk_tree_model_get_iter(GTK_TREE_MODEL(list->liststore), &iter, path)) {
+			return;
+		}
+		
+		gtk_list_store_remove(GTK_LIST_STORE(list->liststore), &iter);
+	}
+	
 }
 
 /* List *********************************************************************/
