@@ -181,7 +181,7 @@ void ui_menu_file_save_cb(void) {
 	GtkWidget *dia_file_save;
 	int response;
 
-	assert (list->title != NULL);
+	assert(list->title != NULL);
 
 	if (list->filename == NULL) {
 		/* No filename known; ask for one */
@@ -189,7 +189,7 @@ void ui_menu_file_save_cb(void) {
 		char *new_filename;
 
 		cur_filename = malloc(sizeof(char) * (strlen(list->title) + 5));
-		sprintf (cur_filename, "%s.lip", list->title);
+		sprintf(cur_filename, "%s.lip", list->title);
 		
 		dia_file_save = gtk_file_chooser_dialog_new(
 				"Save",
@@ -201,11 +201,11 @@ void ui_menu_file_save_cb(void) {
 				GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
 				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
 				NULL);
-		gtk_file_chooser_set_current_name (
+		gtk_file_chooser_set_current_name(
 				GTK_FILE_CHOOSER(dia_file_save),
 				cur_filename);
 
-		free (cur_filename);
+		free(cur_filename);
 		
 		response = gtk_dialog_run(GTK_DIALOG(dia_file_save));
 
@@ -226,7 +226,7 @@ void ui_menu_file_save_as_cb(void) {
 	char *base_filename;
 	char *new_filename;
 
-	assert (list->title != NULL);
+	assert(list->title != NULL);
 
 	if (list->filename != NULL) {
 		/* Use the current filename as a basis for the new filename */
@@ -234,7 +234,7 @@ void ui_menu_file_save_as_cb(void) {
 	} else {
 		/* Use title as default filename */
 		base_filename = malloc(sizeof(char) * (strlen(list->title) + 5));
-		sprintf (base_filename, "%s.lip", list->title);
+		sprintf(base_filename, "%s.lip", list->title);
 	}
 	
 	dia_file_save = gtk_file_chooser_dialog_new(
@@ -247,7 +247,7 @@ void ui_menu_file_save_as_cb(void) {
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
 			NULL);
-	gtk_file_chooser_set_current_name (
+	gtk_file_chooser_set_current_name(
 			GTK_FILE_CHOOSER(dia_file_save),
 			base_filename);
 
@@ -358,7 +358,7 @@ void gtk_tree_selection_get_references(
 	GtkTreeRowReference *row_ref;
 
 	row_ref = gtk_tree_row_reference_new(model, path);
-	*row_refs = g_list_append (*row_refs, row_ref);
+	*row_refs = g_list_append(*row_refs, row_ref);
 }
 
 void ui_menu_row_delete_cb(void) {
@@ -604,10 +604,10 @@ GtkWidget *ui_create_listtitle(void) {
 			(GCallback) ui_listtitle_click_cb, 
 			NULL);
 	
-	title = strdup (list->title);
+	title = strdup(list->title);
 	list_title_set(list, title);
 	list->modified = FALSE;
-	free (title);
+	free(title);
 	
 	return (eventbox);
 }
@@ -789,21 +789,21 @@ GtkWidget *ui_create_menu(void) {
 	GError *error;
 	GtkAccelGroup *accel_group;
 
-	action_group = gtk_action_group_new ("MenuActions");
-	gtk_action_group_add_actions (action_group, entries, G_N_ELEMENTS (entries), win_main);
+	action_group = gtk_action_group_new("MenuActions");
+	gtk_action_group_add_actions(action_group, entries, G_N_ELEMENTS(entries), win_main);
 
-	ui_manager = gtk_ui_manager_new ();
-	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
+	ui_manager = gtk_ui_manager_new();
+	gtk_ui_manager_insert_action_group(ui_manager, action_group, 0);
 
-	accel_group = gtk_ui_manager_get_accel_group (ui_manager);
-	gtk_window_add_accel_group (GTK_WINDOW (win_main), accel_group);
+	accel_group = gtk_ui_manager_get_accel_group(ui_manager);
+	gtk_window_add_accel_group(GTK_WINDOW(win_main), accel_group);
 
 	error = NULL;
-	if (!gtk_ui_manager_add_ui_from_string (ui_manager, ui_description, -1, &error))
+	if (!gtk_ui_manager_add_ui_from_string(ui_manager, ui_description, -1, &error))
 	  {
-		g_message ("building menus failed: %s", error->message);
-		g_error_free (error);
-		exit (EXIT_FAILURE);
+		g_message("building menus failed: %s", error->message);
+		g_error_free(error);
+		exit(EXIT_FAILURE);
 	  }
 
 	menubar = gtk_ui_manager_get_widget(ui_manager, "/MainMenu");
@@ -814,24 +814,26 @@ GtkWidget *ui_create_toolbar(void) {
 	GtkWidget *toolbar;
 	GError *error;
 	GtkAccelGroup *accel_group;
+	GtkUIManager *ui_manager_toolbar;
+	GtkActionGroup *action_group_toolbar;
 
-	action_group = gtk_action_group_new ("ToolbarActions");
-	gtk_action_group_add_actions (action_group, entries, G_N_ELEMENTS (entries), win_main);
+	action_group_toolbar = gtk_action_group_new("ToolbarActions");
+	gtk_action_group_add_actions(action_group, entries, G_N_ELEMENTS(entries), win_main);
 
-	ui_manager = gtk_ui_manager_new ();
-	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
+	ui_manager_toolbar = gtk_ui_manager_new();
+	gtk_ui_manager_insert_action_group(ui_manager_toolbar, action_group, 0);
 
-	accel_group = gtk_ui_manager_get_accel_group (ui_manager);
-	gtk_window_add_accel_group (GTK_WINDOW (win_main), accel_group);
+	accel_group = gtk_ui_manager_get_accel_group(ui_manager_toolbar);
+	gtk_window_add_accel_group(GTK_WINDOW(win_main), accel_group);
 
 	error = NULL;
-	if (!gtk_ui_manager_add_ui_from_string (ui_manager, ui_description_toolbar, -1, &error)) {
-		g_message ("building menus failed: %s", error->message);
-		g_error_free (error);
-		exit (EXIT_FAILURE);
+	if (!gtk_ui_manager_add_ui_from_string(ui_manager_toolbar, ui_description_toolbar, -1, &error)) {
+		g_message("building menus failed: %s", error->message);
+		g_error_free(error);
+		exit(EXIT_FAILURE);
 	}
 
-	toolbar = gtk_ui_manager_get_widget(ui_manager, "/ToolbarFile");
+	toolbar = gtk_ui_manager_get_widget(ui_manager_toolbar, "/ToolbarFile");
 
 	return (toolbar);
 }
@@ -851,7 +853,7 @@ int main(int argc, char *argv[]) {
 
 	win_main = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_default_size(GTK_WINDOW(win_main), 500, 400);
-	g_signal_connect (GTK_OBJECT(win_main), "delete-event", G_CALLBACK(ui_menu_file_quit_cb), NULL);
+	g_signal_connect(GTK_OBJECT(win_main), "delete-event", G_CALLBACK(ui_menu_file_quit_cb), NULL);
 	
 	vbox_main = gtk_vbox_new(FALSE, 0);
 
