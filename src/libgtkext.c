@@ -86,7 +86,7 @@ void gtk_error_dialog(char *fmt, ...) {
 		if (n < -1) {
 			return;
 		} else 
-		if (n > err_len) { /* Throw some more mem at the buf */
+		if (n >= err_len) { /* Throw some more mem at the buf */
 			err_len = (2 * err_len);
 			n = err_len;
 			err = realloc(err, err_len+1);
@@ -126,7 +126,7 @@ void gtk_statusbar_msg(char *fmt, ...) {
 		if (n < -1) {
 			return;
 		} else 
-		if (n > msg_len) { /* Throw some more mem at the buf */
+		if (n >= msg_len) { /* Throw some more mem at the buf */
 			msg_len = (2 * msg_len);
 			n = msg_len;
 			msg = realloc(msg, msg_len+1);
