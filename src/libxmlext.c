@@ -60,7 +60,7 @@ xmlNodePtr xml_add_element_content(xmlNodePtr node_parent, char *element_name, c
 	/* I'd like to unify this into a single function, but it seems that can't 
 	 * be done. I'm getting a '`va_start' used in function with fixed args'
 	 * msgor. If anyone knows, please mail me */
-	while (n == content_len) { /* Keep trying until contentfits in the buffer */
+	while (n == content_len) { /* Keep trying until content fits in the buffer */
 		va_start(argp, fmt);
 		n = vsnprintf(content, content_len, fmt, argp);
 		va_end(argp);
@@ -68,7 +68,7 @@ xmlNodePtr xml_add_element_content(xmlNodePtr node_parent, char *element_name, c
 		if (n < -1) {
 			return (NULL);
 		} else 
-		if (n > content_len) { /* Throw some more mem at the buf */
+		if (n >= content_len) { /* Throw some more mem at the buf */
 			content_len = (2 * content_len);
 			n = content_len;
 			content= realloc(content, content_len+1);
