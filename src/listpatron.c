@@ -145,6 +145,30 @@ void ui_menu_file_new_cb(void) {
 //	}
 //}
 
+int ui_file_load(char *filename) {
+	int err_nr;
+
+	list_clear();
+	list = list_create();
+
+	if ((err_nr = list_load(list, filename)) != 0) {
+		switch (err_nr) {
+			case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
+			case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
+			case -3: gtk_error_dialog("Corrupt listpatron file '%s'.\n\nSome of all of the information in the file may have been lost.", filename); break;
+			default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
+		}
+	} else {
+		gtk_statusbar_msg("File '%s' loaded.", filename);
+		if (list->filename != NULL) {
+			free(list->filename);
+		}
+		list->filename = strdup(filename);
+	}
+
+	return(0);
+}
+
 void ui_menu_file_open_cb(void) {
 	GtkWidget *dia_file_open;
 
@@ -165,25 +189,26 @@ void ui_menu_file_open_cb(void) {
 	
 	if (gtk_dialog_run(GTK_DIALOG(dia_file_open)) == GTK_RESPONSE_ACCEPT) {
 		char *filename = NULL;
-		int err_nr;
-		list_clear();
-		list = list_create();
+		//int err_nr;
 
 		filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_open)));
 
-		if ((err_nr = list_load(list, filename)) != 0) {
-			switch (err_nr) {
-				case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
-				case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
-				default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
-			}
-		} else {
-			gtk_statusbar_msg("File '%s' loaded.", filename);
-			if (list->filename != NULL) {
-				free(list->filename);
-			}
-			list->filename = strdup(filename);
-		}
+		ui_file_load(filename);
+
+//		if ((err_nr = list_load(list, filename)) != 0) {
+//			switch (err_nr) {
+//				case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
+//				case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
+//				case -3: gtk_error_dialog("Corrupt listpatron file '%s'.", filename); break;
+//				default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
+//			}
+//		} else {
+//			gtk_statusbar_msg("File '%s' loaded.", filename);
+//			if (list->filename != NULL) {
+//				free(list->filename);
+//			}
+//			list->filename = strdup(filename);
+//		}
 		
 		free(filename);
 	}
@@ -663,7 +688,8 @@ void ui_menu_column_rename_cb(void) {
 	char *column_name = NULL;
 	GtkTreePath *path;
 	GtkTreeViewColumn *column;
-	
+	int col_nr;
+
 	gtk_tree_view_get_cursor(treeview, &path, &column);
 	if (path != NULL) {
 		gtk_tree_path_free(path);
@@ -673,11 +699,16 @@ void ui_menu_column_rename_cb(void) {
 		return;
 	}
 
+	col_nr = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
+
+	printf("col_nr : %i\n", col_nr);
+
 	column_name = gtk_input_dialog(
 			"Enter the column name", 
 			(char *)gtk_tree_view_column_get_title(column));
 
 	if (column_name) {
+		list_column_rename(col_nr, column_name);
 		gtk_tree_view_column_set_title(column, column_name);
 		free(column_name);
 	}
@@ -975,6 +1006,7 @@ GtkWidget *ui_create_listtitle(void) {
 	
 	title = strdup (list->title);
 	list_title_set(title);
+	list->modified = FALSE;
 	free (title);
 	
 	return (eventbox);
@@ -1042,7 +1074,7 @@ void handle_cmdline(int argc, char *argv[]) {
 
 	/* Remaining option (open as listpatron file) */
 	if (optind < argc) {
-		list_load(list, argv[optind]);
+		ui_file_load(argv[optind]);
 	}
 }
 
@@ -1060,6 +1092,7 @@ int main(int argc, char *argv[]) {
 
 	win_main = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_default_size(GTK_WINDOW(win_main), 500, 400);
+	g_signal_connect (GTK_OBJECT(win_main), "delete-event", G_CALLBACK(ui_menu_file_quit_cb), NULL);
 	
 	vbox_main = gtk_vbox_new(FALSE, 2);
 
