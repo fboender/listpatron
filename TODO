@@ -8,6 +8,4 @@ Small things that need to be taken care of but which I'm going to forget about
 * Structures used for inter-function communication should be named ui_struct_
 * gchar should be used where appropriate.
 * Bug: New sorting rule with name 'Unnamed' overwrites existing 'Unnamed' rules without prompting.
-* Move 'data/' to 'xml/'
 * rename 'listpatron.dtd' to 'listpatron-0.1.dtd'
-
