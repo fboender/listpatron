@@ -79,6 +79,7 @@ void list_row_add(list_ *list, char *values[]);
 void list_row_delete(list_ *list, GList *row_refs);
 list_ *list_create(void);
 void list_title_set(char *title);
+void list_filename_set(list_ *list, char *filename);
 void list_clear(void);
 int list_import_csv(list_ *list, char *filename, char delimiter);
 int list_export_csv(list_ *list, char *filename, char delimiter);

@@ -545,12 +545,12 @@ void list_clear(void) {
 		}
 
 		/* Deep free list structure */
-		if (list->version != NULL) { free(list->version); }
-		if (list->title != NULL) { free(list->title); }
-		if (list->author != NULL) { free(list->author); }
-		if (list->description != NULL) { free(list->description); }
-		if (list->keywords != NULL) { free(list->keywords); }
-		if (list->filename != NULL) { free(list->filename); }
+		if (list->version != NULL) { free(list->version); list->version = NULL; }
+		if (list->title != NULL) { free(list->title); list->title = NULL; }
+		if (list->author != NULL) { free(list->author); list->author = NULL; }
+		if (list->description != NULL) { free(list->description); list->description = NULL; }
+		if (list->keywords != NULL) { free(list->keywords); list->keywords = NULL; }
+		if (list->filename != NULL) { free(list->filename); list->filename = NULL; }
 
 		free(list);
 		list = NULL; /* FIXME: Does this reference the local or global var? */
@@ -1018,7 +1018,7 @@ int list_load(list_ *list, char *filename) {
 	gtk_window_move(GTK_WINDOW(win_main), pos_x, pos_y);
 	gtk_window_resize(GTK_WINDOW(win_main), dim_width, dim_height);
 
-	list->filename = strdup(filename); /* FIXME: Not freed */
+	list_filename_set(list, filename);
 	list->modified = FALSE;
 
 	if (err != 0) { 
@@ -1069,6 +1069,17 @@ int list_save_sorts(list_ *list, xmlNodePtr node_sorts) {
 	return(0);
 }
 
+void list_filename_set(list_ *list, char *filename) {
+	if (list->filename != NULL) {
+		free(list->filename);
+	}
+	if (filename == NULL) {
+		list->filename = NULL;
+	} else {
+		list->filename = strdup(filename);
+	}
+}
+
 int list_save(list_ *list, char *filename) {
 	xmlDocPtr doc;
 	xmlNodePtr 
@@ -1091,6 +1102,8 @@ int list_save(list_ *list, char *filename) {
 	gchar *row_data;
 	int i;
 	
+	assert(filename != list->filename);
+
 	gtk_window_get_size(GTK_WINDOW(win_main), &dim_width, &dim_height);
 	gtk_window_get_position(GTK_WINDOW(win_main), &pos_x, &pos_y);
 
@@ -1164,10 +1177,14 @@ int list_save(list_ *list, char *filename) {
 		} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
 	}
 
-	xmlSaveFormatFileEnc(filename, doc, "ISO-8859-1", 1);
+	if (filename == NULL) {
+		xmlSaveFormatFileEnc(list->filename, doc, "ISO-8859-1", 1);
+		list_filename_set(list, filename);
+	} else {
+		xmlSaveFormatFileEnc(filename, doc, "ISO-8859-1", 1);
+	}
 	xmlFreeDoc(doc);
 	
-	list->filename = strdup(filename); /* FIXME: Not freed */
 	list->modified = FALSE;
 
 	return (0);

@@ -112,10 +112,8 @@ int ui_file_load(char *filename) {
 		}
 	} else {
 		gtk_statusbar_msg("File '%s' loaded.", filename);
-		if (list->filename != NULL) {
-			free(list->filename);
-		}
-		list->filename = strdup(filename);
+		/* FIXME: Basename?? */
+		list_filename_set(list, filename);
 	}
 
 	return(0);
@@ -186,14 +184,12 @@ void ui_menu_file_save_cb(void) {
 	assert (list->title != NULL);
 
 	if (list->filename == NULL) {
-		char *filename;
+		/* No filename known; ask for one */
+		char *cur_filename;
+		char *new_filename;
 
-		if (list->filename != NULL) {
-			strdup (list->filename);
-		} else {
-			filename = malloc(sizeof(char) * (strlen(list->title) + 5));
-			sprintf (filename, "%s.lip", list->title);
-		}
+		cur_filename = malloc(sizeof(char) * (strlen(list->title) + 5));
+		sprintf (cur_filename, "%s.lip", list->title);
 		
 		dia_file_save = gtk_file_chooser_dialog_new(
 				"Save",
@@ -207,38 +203,38 @@ void ui_menu_file_save_cb(void) {
 				NULL);
 		gtk_file_chooser_set_current_name (
 				GTK_FILE_CHOOSER(dia_file_save),
-				filename);
+				cur_filename);
 
-		free (filename);
+		free (cur_filename);
 		
 		response = gtk_dialog_run(GTK_DIALOG(dia_file_save));
 
 		if (response == GTK_RESPONSE_ACCEPT) {
-			list->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_save)));
+			new_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_save));
+			list_save(list, NULL);
 			gtk_widget_destroy(dia_file_save);
 		} else {
 			gtk_widget_destroy(dia_file_save);
 			return;
 		}
 	}
-
-	if (list->filename != NULL) {
-		list_save(list, list->filename);
-	}
 }
 
 void ui_menu_file_save_as_cb(void) {
 		GtkWidget *dia_file_save;
 	int response;
-	char *filename;
+	char *base_filename;
+	char *new_filename;
 
 	assert (list->title != NULL);
 
 	if (list->filename != NULL) {
-		strdup (list->filename);
+		/* Use the current filename as a basis for the new filename */
+		base_filename = strdup(list->filename);
 	} else {
-		filename = malloc(sizeof(char) * (strlen(list->title) + 5));
-		sprintf (filename, "%s.lip", list->title);
+		/* Use title as default filename */
+		base_filename = malloc(sizeof(char) * (strlen(list->title) + 5));
+		sprintf (base_filename, "%s.lip", list->title);
 	}
 	
 	dia_file_save = gtk_file_chooser_dialog_new(
@@ -253,22 +249,19 @@ void ui_menu_file_save_as_cb(void) {
 			NULL);
 	gtk_file_chooser_set_current_name (
 			GTK_FILE_CHOOSER(dia_file_save),
-			filename);
+			base_filename);
 
-	free (filename);
-	
+	free(base_filename);
+
 	response = gtk_dialog_run(GTK_DIALOG(dia_file_save));
 
 	if (response == GTK_RESPONSE_ACCEPT) {
-		list->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_save)));
+		new_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_save));
+		list_save(list, new_filename);
 		gtk_widget_destroy(dia_file_save);
 	} else {
 		gtk_widget_destroy(dia_file_save);
 		return;
-	}
-
-	if (list->filename != NULL) {
-		list_save(list, list->filename);
 	}
 }
 
