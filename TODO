@@ -6,22 +6,5 @@ Small things that need to be taken care of but which I'm going to forget about
 	- GtkItemFactory
 	- gtk_signal_connect
 * Structures used for inter-function communication should be named ui_struct_
-* (listpatron:13099): Gtk-CRITICAL **: file gtktreemodel.c: line 998 (gtk_tree_model_get_iter_first): assertion `GTK_IS_TREE_MODEL (tree_model)' failed
-  Reproduction:
-    - Start listpatron.
-	- Save the list.
-	- Error occurs.
-* Following error:
-  (listpatron:2183): GLib-GObject-CRITICAL **: file gobject.c: line 1642 (g_object_get_data): assertion `G_IS_OBJECT (object)' failed
-  ** (listpatron:2183): WARNING **: Invalid UTF8 string passed to pango_layout_set_text()
-
-  Reproduction:
-  - Open testdata/Boeken-ext.lsp
-  - Edit the sorting rules
-  - Open the properties dialog for a sorting rule
-  - Rename it to the same name as another sorting rule
-  - Press OK.
-  - Repeat the rename and ok step until the error occurs (somewhat intermittent)
-
 * gchar should be used where appropriate.
 * Bug: New sorting rule with name 'Unnamed' overwrites existing 'Unnamed' rules without prompting.
