@@ -90,9 +90,13 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 
 		gtk_statusbar_msg("Row %i, Column %i", row+1, col+1);
 
+		/* If the cursor is at the bottom of the list, add a new row */
+		/* Disabled due to sorting */
+		/*
 		if (row == list->nr_of_rows-1) {
 			list_row_add_empty(list);
 		}
+		*/
 	}
 }
 
@@ -118,6 +122,7 @@ int ui_file_load(char *filename) {
 		list_filename_set(list, filename);
 	}
 
+	
 	return(0);
 }
 
@@ -347,7 +352,20 @@ void ui_menu_column_delete_cb(void) {
 }
 
 void ui_menu_row_add_cb(void) {
-	list_row_add_empty(list);
+	gchar *iterstr = NULL;
+	GtkTreePath *path = NULL;
+	
+	iterstr = list_row_add_empty(list);
+	printf("%s\n", iterstr);
+	if (iterstr != NULL) {
+		/* Focus the new row */
+		path = gtk_tree_path_new_from_string(iterstr);
+		if (path != NULL) {
+			gtk_tree_view_set_cursor(treeview, path, NULL, FALSE); /* FIXME: Bug. See TODO */
+			gtk_widget_grab_focus(GTK_WIDGET(treeview));
+			gtk_tree_path_free(path);
+		}
+	}
 }
 
 void gtk_tree_selection_get_references(
@@ -367,18 +385,37 @@ void ui_menu_row_delete_cb(void) {
 	GtkTreeSelection *selection = NULL;
 	GList *row_refs = NULL;
 	GList *iter = NULL;
+	GtkTreePath *path = NULL;
 	
 	selection = gtk_tree_view_get_selection(treeview);
+	printf("Selection: %p\n", selection);
+	if (selection != NULL) {
+		gtk_tree_selection_selected_foreach(selection, gtk_tree_selection_get_references, &row_refs);
+		if (row_refs != NULL) {
+			path = gtk_tree_row_reference_get_path(row_refs->data); /* Save for focus */
 
-	gtk_tree_selection_selected_foreach(selection, gtk_tree_selection_get_references, &row_refs);
-	list_row_delete(list, row_refs);
+			list_row_delete(list, row_refs);
 
-	iter = row_refs;
-	while (iter != NULL) {
-		gtk_tree_row_reference_free(iter->data);
-		iter = iter->next;
+			iter = row_refs;
+			
+			while (iter != NULL) {
+				gtk_tree_row_reference_free(iter->data);
+				iter = iter->next;
+			}
+			g_list_free(row_refs);
+
+			/* Focus row */
+			printf("%p\n", path);
+			if (path != NULL) {
+				gchar *pathstr = NULL;
+				pathstr = gtk_tree_path_to_string(path);
+				printf("%s\n", pathstr);
+				gtk_tree_view_set_cursor(treeview, path, NULL, FALSE);
+				gtk_widget_grab_focus(GTK_WIDGET(treeview));
+				gtk_tree_path_free(path);
+			}
+		}
 	}
-	g_list_free(row_refs);
 }
 
 void ui_menu_debug_addtestdata_cb(void) {

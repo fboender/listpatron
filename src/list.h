@@ -102,10 +102,12 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column);
 /* Renames the column identified by 'col_nr' to 'title' */
 void list_column_rename(int col_nr, char *title);
 
-/* Adds a new empty row to 'list' */
-void list_row_add_empty(list_ *list);
+/* Adds a new empty row to 'list'. Returns the string representation of the new
+ * iter, which should be freed with g_free() */
+gchar *list_row_add_empty(list_ *list);
 
 /* Adds a new row with the values in 'values' to 'list' */
+/* TODO: Return string representation of new iter */
 void list_row_add(list_ *list, char *values[]);
 
 /* Deletes the rowS referenced by 'row_refs' from 'list'.

@@ -419,12 +419,13 @@ void list_column_rename(int col_nr, char *title) {
 	list->modified = TRUE;
 }
 
-void list_row_add_empty(list_ *list) {
-	GtkTreeIter treeiter;
+gchar *list_row_add_empty(list_ *list) {
 	int i;
+	GtkTreeIter treeiter;
+	gchar *iterstr;
 
 	if (list->liststore == NULL) {
-		return;
+		return(NULL);
 	}
 	
 	gtk_list_store_append(list->liststore, &treeiter);
@@ -434,7 +435,10 @@ void list_row_add_empty(list_ *list) {
 
 	list->nr_of_rows++;
 	list->modified = TRUE;
+
+	iterstr = gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(list->liststore), &treeiter);
 	
+	return(iterstr);
 }
 
 void list_row_add(list_ *list, char *values[]) {
