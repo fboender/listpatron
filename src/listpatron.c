@@ -42,6 +42,7 @@
 /****************************************************************************/
 
 typedef struct list_ {
+	char *filename;
 	GtkTreeView *treeview;
 	GtkListStore *liststore;
 	int nr_of_cols;
@@ -62,6 +63,7 @@ int list_save (list_ *list, char *filename);
 /* Callback functions */
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
+void ui_menu_file_save_as_cb (void);
 void ui_menu_column_add_cb (void);
 void ui_menu_column_rename_cb (void);
 void ui_menu_column_delete_cb (void);
@@ -81,7 +83,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/File/_New"           , NULL, list_column_add             , 0, "<StockItem>" , GTK_STOCK_NEW   },
 	{ "/File/_Open"          , NULL, ui_menu_file_open_cb        , 0, "<StockItem>" , GTK_STOCK_OPEN  },
 	{ "/File/_Save"          , NULL, ui_menu_file_save_cb        , 0, "<StockItem>" , GTK_STOCK_SAVE  },
-	{ "/File/Save _As"       , NULL, NULL                        , 0, "<Item>"                        },
+	{ "/File/Save _As"       , NULL, ui_menu_file_save_as_cb     , 0, "<Item>"                        },
 	{ "/File/_Export"        , NULL, NULL                        , 0, "<Item>"                        },
 	{ "/File/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
 	{ "/File/_Quit"          , NULL, gtk_main_quit               , 0, "<StockItem>" , GTK_STOCK_QUIT  },
@@ -337,6 +339,7 @@ list_ *list_create (void) {
 	GtkTreeSelection *treeselection;
 	list = malloc(sizeof(list_));
 
+	list->filename   = NULL;
 	list->treeview   = NULL;
 	list->liststore  = NULL;
 	list->nr_of_cols = 0;
@@ -395,6 +398,8 @@ int list_load (list_ *list, char *filename) {
 
 	free (rowdata);
 
+	list->filename = strdup(filename);
+
 	return (0);
 }
 
@@ -435,21 +440,93 @@ int list_save (list_ *list, char *filename) {
 	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
 	
 	xmlSaveFormatFileEnc (filename, doc, "ISO-8859-1", 1);
-
+	
+	list->filename = strdup(filename);
 	return (0);
 }
 
 /****************************************************************************
  * Callbacks 
  ****************************************************************************/
+/* File open callbacks */
 
 /* Menu *********************************************************************/
-void ui_menu_file_open_cb (void) {
-	list_load (list, "list");
+void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
+	char *filename = NULL;
+	
+	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
+	
+	list_load (list, filename);
 }
 
+void ui_menu_file_open_cb (void) {
+	GtkWidget *win_file_open;
+
+	win_file_open = gtk_file_selection_new ("Open file");
+	
+    g_signal_connect (
+			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
+			"clicked", 
+			G_CALLBACK (ui_file_open_btn_ok_cb), 
+			(gpointer) win_file_open);
+    g_signal_connect_swapped (
+			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
+			"clicked", 
+			G_CALLBACK (gtk_widget_destroy), 
+			G_OBJECT (win_file_open));
+    g_signal_connect_swapped (
+			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->cancel_button),
+			"clicked", 
+			G_CALLBACK (gtk_widget_destroy), 
+			G_OBJECT (win_file_open));
+	
+	gtk_widget_show (win_file_open);
+}
+
+void ui_file_save_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
+	char *filename = NULL;
+	
+	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
+	
+	list_save (list, filename);
+}
+
+
 void ui_menu_file_save_cb (void) {
-	list_save (list, "list");
+	GtkWidget *win_file_save;
+
+	if (list->filename == NULL) {
+		win_file_save = gtk_file_selection_new ("Save file");
+		
+		g_signal_connect (
+				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
+				"clicked", 
+				G_CALLBACK (ui_file_save_btn_ok_cb), 
+				(gpointer) win_file_save);
+		g_signal_connect_swapped (
+				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
+				"clicked", 
+				G_CALLBACK (gtk_widget_destroy), 
+				G_OBJECT (win_file_save));
+		g_signal_connect_swapped (
+				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->cancel_button),
+				"clicked", 
+				G_CALLBACK (gtk_widget_destroy), 
+				G_OBJECT (win_file_save));
+		
+		gtk_widget_show (win_file_save);
+	} else {
+		list_save (list, list->filename);
+	}
+}
+
+void ui_menu_file_save_as_cb (void) {
+	char *old_filename;
+
+	old_filename = list->filename;
+	list->filename = NULL;
+	ui_menu_file_save_cb();
+	list->filename = old_filename;
 }
 
 void ui_menu_column_add_cb (void) {
