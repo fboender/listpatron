@@ -177,6 +177,7 @@ void ui_menu_file_export_csv_cb(void) {
 }
 
 void ui_menu_file_export_ps_cb(void) {
+	gtk_error_dialog("PostScript exporting is still uncompleted, and will only export the first column. Sorry.");
 	ui_export_ps();
 }
 
