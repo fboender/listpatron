@@ -115,6 +115,8 @@ void list_sort_add(list_ *list, char *old_name, char *name, GArray *columns) {
 
 	sort->name = strdup(name);
 	sort->columns = columns;
+
+	list->modified = TRUE;
 }
 
 void list_sort_remove(list_ *list, char *name) {
@@ -130,6 +132,8 @@ void list_sort_remove(list_ *list, char *name) {
 			break;
 		}
 	}
+
+	list->modified = TRUE;
 }
 
 /* FIXME: This routine can and should be optimized. */
@@ -203,6 +207,8 @@ void list_sorts_remove_column(int col_nr) {
 			g_array_remove_index(sort->columns, col_nr_remove);
 		}
 	}
+
+	list->modified = TRUE;
 }
 
 void list_column_add(list_ *list, char *title) {
