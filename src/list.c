@@ -83,6 +83,11 @@ void list_sort_add(list_ *list, char *old_name, char *name, GArray *columns) {
 
 	assert(name != NULL);
 	assert(columns != NULL);
+
+	/* Stop duplicate sorting rules from being added */
+	if (old_name != NULL && strcmp(old_name, name) != 0) {
+		assert(list_sort_getrule(list, name) == NULL);
+	}
 	
 	if (old_name != NULL) {
 		/* Find old sorting rule and deep free it */

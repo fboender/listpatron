@@ -25,7 +25,7 @@ typedef struct ui_sort_ {
 int ui_sort_new(void);
 int ui_sort_edit(char *rule_name);
 int ui_sort_delete(char *rule_name);
-void ui_sort_ok_cb(ui_sort_ *ui_sort, GtkListStore *ls_sort, GtkEntry *ent_name);
+int ui_sort_ok_cb(ui_sort_ *ui_sort, GtkListStore *ls_sort, GtkEntry *ent_name);
 void ui_sort_selection_changed_cb(GtkTreeSelection *treeselection, struct ui_sort_ *sort);
 void ui_sort_moveup_clicked_cb(GtkButton *button, struct ui_sort_ *sort);
 void ui_sort_movedown_clicked_cb(GtkButton *button, struct ui_sort_ *sort);

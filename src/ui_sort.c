@@ -37,9 +37,32 @@ int ui_sort_delete(char *rule_name) {
 	return(0);
 }
 
-void ui_sort_ok_cb(ui_sort_ *ui_sort, GtkListStore *ls_sort, GtkEntry *ent_name) {
+int ui_sort_ok_cb(ui_sort_ *ui_sort, GtkListStore *ls_sort, GtkEntry *ent_name) {
 	GtkTreeIter iter;
 	GArray *sort_cols;
+	gchar *new_name = NULL;
+	int i;
+
+	new_name = (gchar *)gtk_entry_get_text(ent_name);
+	
+	/* Determine if no other rules with the same name exist */
+	if (strcmp(ui_sort->old_name, new_name) != 0) { /* Name has changed */
+		for (i = 0; i < list->sorts->len; i++) {
+			sort_ *sort;
+
+			sort = g_array_index(list->sorts, sort_ *, i);
+			if (strcmp(sort->name, new_name) == 0) {
+				int response;
+				/* Duplicate found */
+				response = gtk_yesno_dialog("Overwrite?", "A rule with this name already exists. Do you wish to overwrite the rule?");
+				if (response == GTK_RESPONSE_YES) {
+					list_sort_remove(list, new_name);
+				} else {
+					return(-1);
+				}
+			}
+		}
+	}
 
 	sort_cols = g_array_new(FALSE, FALSE, sizeof(sort_col_ *));
 
@@ -56,7 +79,9 @@ void ui_sort_ok_cb(ui_sort_ *ui_sort, GtkListStore *ls_sort, GtkEntry *ent_name)
 		g_array_append_val(sort_cols, sort_col);
 	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(ls_sort), &iter));
 
-	list_sort_add(list, ui_sort->old_name, (char *)gtk_entry_get_text(ent_name), sort_cols);
+	list_sort_add(list, ui_sort->old_name, new_name, sort_cols);
+	
+	return(0);
 }
 
 void ui_sort_selection_changed_cb(GtkTreeSelection *treeselection, struct ui_sort_ *sort) {
@@ -197,6 +222,7 @@ gint ui_sort_rule_edit(char *name) {
 	GtkWidget *scrl_list;
 	GtkWidget *vbox_sortorder;
 	struct ui_sort_ *sort;
+	int stop;
 	
 	if (list->nr_of_cols == 0) {
 		gtk_error_dialog("The list has no columns to sort on");
@@ -322,13 +348,18 @@ gint ui_sort_rule_edit(char *name) {
 
 	gtk_widget_show_all(dia_sort);
 
-	response = gtk_dialog_run(GTK_DIALOG(dia_sort));
-	switch (response) {
-		case GTK_RESPONSE_ACCEPT: 
-			ui_sort_ok_cb(sort, sort->ls_sort, GTK_ENTRY(ent_name));
-			break;
-		default:
-			break;
+	stop = 0;
+	while (!stop) {
+		response = gtk_dialog_run(GTK_DIALOG(dia_sort));
+		switch (response) {
+			case GTK_RESPONSE_ACCEPT: 
+				if (ui_sort_ok_cb(sort, sort->ls_sort, GTK_ENTRY(ent_name)) == 0) {
+					stop = 1;
+				}
+				break;
+			default:
+				break;
+		}
 	}
 
 	/* FIXME: Free used memory. This is currently not done, but should be done

@@ -67,6 +67,31 @@ char *gtk_input_dialog(char *message, char *prefill) {
 	return (response);
 }
 
+int gtk_yesno_dialog(char *title, char *message) {
+	GtkWidget *dia_yesno;
+	GtkWidget *lbl_question;
+	gint result;
+	
+	dia_yesno = gtk_dialog_new_with_buttons(
+			title,
+			NULL,
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_YES, GTK_RESPONSE_YES,
+			GTK_STOCK_NO, GTK_RESPONSE_NO,
+			NULL);
+	
+	lbl_question = gtk_label_new(message);
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dia_yesno)->vbox), lbl_question);
+	
+	gtk_widget_show_all(dia_yesno);
+
+	result = gtk_dialog_run(GTK_DIALOG(dia_yesno));
+
+	gtk_widget_destroy(dia_yesno);
+	
+	return(result);
+}
+
 void gtk_error_dialog(char *fmt, ...) {
 	va_list argp;
 	char *err = NULL;
