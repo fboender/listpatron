@@ -369,10 +369,49 @@ char *xml_get_element_content (xmlDocPtr doc, char *xpath) {
 	}
 	xmlXPathFreeContext(context);
 
-	/* FIXME: extra error checking */
-	return (result->nodesetval->nodeTab[0]->children->content);
+	if (result->nodesetval->nodeTab[0]->children) {
+		return (result->nodesetval->nodeTab[0]->children->content);
+	} else {
+		return ("");
+	}
 }
 
+xmlNodePtr xml_add_element_content (xmlNodePtr node_parent, char *element_name, char *fmt, ...) {
+	va_list argp;
+	char *content = NULL;
+	xmlNodePtr node_new = NULL;
+	int n = 10, content_len = 10;
+	
+	content= malloc(content_len);
+
+	/* I'd like to unify this into a single function, but it seems that can't 
+	 * be done. I'm getting a '`va_start' used in function with fixed args'
+	 * msgor. If anyone knows, please mail me */
+	while (n == content_len) { /* Keep trying until contentfits in the buffer */
+		va_start(argp, fmt);
+		n = vsnprintf(content, content_len, fmt, argp);
+		va_end(argp);
+		
+		if (n < -1) {
+			return (NULL);
+		} else 
+		if (n > content_len) { /* Throw some more mem at the buf */
+			content_len = (2 * content_len);
+			n = content_len;
+			content= realloc(content, content_len+1);
+		} else {
+			n = 0; /* That'll be enough, thank you */
+		}
+	}
+	
+	node_new = xmlNewChild (node_parent, NULL, element_name, (const xmlChar *)content);
+	
+	free (content);
+
+	return (node_new);
+}
+
+/* NOTICE: Unused */
 char *xml_element_get_value (xmlNodePtr node_parent, char *element_name) {
 	if (node_parent->type == XML_ELEMENT_NODE) {
 		if (strcmp(node_parent->name, element_name) == 0) {
@@ -601,7 +640,7 @@ list_ *list_create (void) {
 	list = malloc(sizeof(list_));
 
 	list->version     = strdup("0.1");
-	list->title       = strdup("New list");
+	list->title       = strdup(" !");
 	list->author      = strdup("");
 	list->description = strdup("");
 	list->keywords    = strdup("");
@@ -994,79 +1033,84 @@ int list_save (list_ *list, char *filename) {
 	xmlDocPtr doc;
 	xmlNodePtr 
 		node_root, 
-		node_appstate, node_pos, node_dim,
-		node_header, 
-		node_rowdata, 
+		node_info,
+		node_state,
+		node_window,
+		node_position,
+		node_dimensions,
+		node_header,
+		node_rows,
 		node_row;
-	int appstate_width, 
-		appstate_height, 
-		appstate_posx, 
-		appstate_posy;
-	char 
-		*str_appstate_width, 
-		*str_appstate_height, 
-		*str_appstate_posx, 
-		*str_appstate_posy;
 	GtkTreeIter iter;
-	gchar *row_data;
 	GList *columns = NULL, *column_iter = NULL;
+	int 
+		pos_x, 
+		pos_y, 
+		dim_width, 
+		dim_height;
+	gchar *row_data;
 	int i;
 	
+	gtk_window_get_size (GTK_WINDOW(win_main), &dim_width, &dim_height);
+	gtk_window_get_position (GTK_WINDOW(win_main), &pos_x, &pos_y);
+
 	/* Create XML document */
-	doc = xmlNewDoc ("1.0");
+	doc = xmlNewDoc("1.0");
+	xmlCreateIntSubset(doc, "list", NULL, "data/listpatron.dtd");
+
 	node_root = xmlNewDocNode(doc, NULL, (const xmlChar *)"list", NULL);
 	xmlDocSetRootElement (doc, node_root);
 
-	/* Save application state */
-	node_appstate = xmlNewChild (node_root, NULL, (const xmlChar *)"state", NULL);
-	node_pos = xmlNewChild (node_appstate, NULL, (const xmlChar *)"position", NULL);
-	node_dim = xmlNewChild (node_appstate, NULL, (const xmlChar *)"dimensions", NULL);
+	/* Save application info <info> */
+	node_info = xmlNewChild(node_root, NULL, (const xmlChar *)"info", NULL);
+	xml_add_element_content (node_info, "version", "%s", list->version);
+	xml_add_element_content (node_info, "title", "%s", list->title);
+	xml_add_element_content (node_info, "author", "%s", list->author);
+	xml_add_element_content (node_info, "description", "%s", list->description);
+	xml_add_element_content (node_info, "keywords", "%s", list->keywords);
+
+	/* Save application state <state>*/
+	node_state = xmlNewChild(node_root, NULL, (const xmlChar *)"state", NULL);
+	node_window = xmlNewChild(node_state, NULL, (const xmlChar *)"window", NULL);
+	node_position = xmlNewChild(node_window, NULL, (const xmlChar *)"position", NULL);
+	xml_add_element_content(node_position, "x", "%i", pos_x);
+	xml_add_element_content(node_position, "y", "%i", pos_y);
+	node_dimensions = xmlNewChild(node_window, NULL, (const xmlChar *)"dimensions", NULL);
+	xml_add_element_content(node_dimensions, "width", "%i", dim_width);
+	xml_add_element_content(node_dimensions, "height", "%i", dim_height);
 	
-	gtk_window_get_size (GTK_WINDOW(win_main), &appstate_width, &appstate_height);
-	gtk_window_get_position (GTK_WINDOW(win_main), &appstate_posx, &appstate_posy);
-	str_appstate_width = malloc(sizeof(char) * 6); sprintf (str_appstate_width, "%i", appstate_width);
-	str_appstate_height = malloc(sizeof(char) * 6); sprintf (str_appstate_height, "%i", appstate_height);
-	str_appstate_posx = malloc(sizeof(char) * 6); sprintf (str_appstate_posx, "%i", appstate_posx);
-	str_appstate_posy = malloc(sizeof(char) * 6); sprintf (str_appstate_posy, "%i", appstate_posy);
-	xmlNewChild(node_dim, NULL, (const xmlChar *)"width", str_appstate_width);
-	xmlNewChild(node_dim, NULL, (const xmlChar *)"height", str_appstate_height);
-	xmlNewChild(node_pos, NULL, (const xmlChar *)"x", str_appstate_posx);
-	xmlNewChild(node_pos, NULL, (const xmlChar *)"y", str_appstate_posy);
-	free (str_appstate_width);
-	free (str_appstate_height);
-	free (str_appstate_posx);
-	free (str_appstate_posy);
+	/* Save filters */
+	/* NOT IMPLEMENTED YET */
+
+	/* Save sorts */
+	/* NOT IMPLEMENTED YET */
+
+	/* Save reports */
+	/* NOT IMPLEMENTED YET */
+
+	/* Save column header information <header> */
+	node_header = xmlNewChild(node_root, NULL, (const xmlChar *)"header", NULL);
 	
 	columns = gtk_tree_view_get_columns (list->treeview);
 	column_iter = columns;
 	while (column_iter) {
-		xmlNewChild(node_header, NULL, (const xmlChar *)"col", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
+		xml_add_element_content(node_header, "columnname", "%s", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
 		column_iter = column_iter->next;
 	}
 
-	/* Parse column information */
-	node_header = xmlNewChild (node_root, NULL, (const xmlChar *)"header", NULL);
-	
-	columns = gtk_tree_view_get_columns (list->treeview);
-	column_iter = columns;
-	while (column_iter) {
-		xmlNewChild(node_header, NULL, (const xmlChar *)"col", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
-		column_iter = column_iter->next;
-	}
+	/* Save row data <rows> */
+	node_rows = xmlNewChild (node_root, NULL, (const xmlChar *)"rows", NULL);
 
-	/* Parse row information */
-	node_rowdata = xmlNewChild (node_root, NULL, (const xmlChar *)"rowdata", NULL);
-	
 	gtk_tree_model_get_iter_root (GTK_TREE_MODEL(list->liststore), &iter);
 	do {
-		node_row = xmlNewChild (node_rowdata, NULL, (const xmlChar *)"row", NULL);
+		node_row = xmlNewChild (node_rows, NULL, (const xmlChar *)"row", NULL);
 		for (i = 0; i < list->nr_of_cols; i++) {
 			gtk_tree_model_get (GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
-			xmlNewChild(node_row, NULL, (const xmlChar *)"col", row_data);
+			xml_add_element_content(node_row, "column", "%s", row_data);
 			free (row_data);
 		}
 	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
-	
+
 	xmlSaveFormatFileEnc (filename, doc, "ISO-8859-1", 1);
 	
 	list->filename = strdup(filename);
@@ -1683,7 +1727,7 @@ GtkWidget *ui_create_listtitle (void) {
 			(GCallback) ui_listtitle_click_cb, 
 			NULL);
 	
-	list_title_set ("Untitled");
+	list_title_set (list->title);
 	
 	return (eventbox);
 }
