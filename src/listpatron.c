@@ -51,6 +51,7 @@ typedef struct list_ {
 	GtkListStore *liststore;
 	int nr_of_cols;
 	int nr_of_rows;
+	int modified;
 } list_;
 
 typedef struct import_ {
@@ -92,6 +93,7 @@ void ui_menu_file_export_ps_cb (void);
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
 void ui_menu_file_save_as_cb (void);
+void ui_menu_file_quit_cb (void);
 void ui_menu_column_add_cb (void);
 void ui_menu_column_rename_cb (void);
 void ui_menu_column_delete_cb (void);
@@ -110,36 +112,36 @@ GtkWidget *ui_create_menubar (GtkWidget *window);
  * Data initializer
  ****************************************************************************/
 static GtkItemFactoryEntry ui_menu_items[] = {
-	{ "/_File"               , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/File/_New"           , NULL, list_column_add             , 0, "<StockItem>" , GTK_STOCK_NEW   },
-	{ "/File/_Open"          , NULL, ui_menu_file_open_cb        , 0, "<StockItem>" , GTK_STOCK_OPEN  },
-	{ "/File/_Save"          , NULL, ui_menu_file_save_cb        , 0, "<StockItem>" , GTK_STOCK_SAVE  },
-	{ "/File/Save _As"       , NULL, ui_menu_file_save_as_cb     , 0, "<Item>"                        },
-	{ "/File/_Import"        , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/File/Import/_Character Separated"        , NULL, ui_menu_file_import_csv_cb , 0, "<Item>" },
-	{ "/File/_Export"        , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/File/Export/_Postscript" , NULL, ui_menu_file_export_ps_cb , 0, "<Item>" },
-	{ "/File/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
-	{ "/File/_Quit"          , NULL, gtk_main_quit               , 0, "<StockItem>" , GTK_STOCK_QUIT  },
-	{ "/_Edit"               , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/Edit/Cu_t"           , NULL, NULL                        , 0, "<StockItem>" , GTK_STOCK_CUT   },
-	{ "/Edit/_Copy"          , NULL, NULL                        , 0, "<StockItem>" , GTK_STOCK_COPY  },
-	{ "/Edit/_Paste"         , NULL, NULL                        , 0, "<StockItem>" , GTK_STOCK_PASTE },
-	{ "/Edit/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
-	{ "/_Column"             , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/Column/_Add"         , NULL, ui_menu_column_add_cb       , 0, "<StockItem>" , GTK_STOCK_ADD   },
-	{ "/Column/_Delete"      , NULL, ui_menu_column_delete_cb    , 0, "<StockItem>" , GTK_STOCK_DELETE},
-	{ "/Column/_Rename"      , NULL, ui_menu_column_rename_cb    , 0, "<Item>"                        },
-	{ "/_Row"                , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/Row/_Add"            , NULL, ui_menu_row_add_cb          , 0, "<StockItem>" , GTK_STOCK_ADD   },
-	{ "/Row/_Delete"         , NULL, ui_menu_row_delete_cb       , 0, "<StockItem>" , GTK_STOCK_DELETE},
+	{ "/_File"                            , NULL , NULL                         , 0 , "<Branch>"                      },
+	{ "/File/_New"                        , NULL , list_column_add              , 0 , "<StockItem>", GTK_STOCK_NEW    },
+	{ "/File/_Open"                       , NULL , ui_menu_file_open_cb         , 0 , "<StockItem>", GTK_STOCK_OPEN   },
+	{ "/File/_Save"                       , NULL , ui_menu_file_save_cb         , 0 , "<StockItem>", GTK_STOCK_SAVE   },
+	{ "/File/Save _As"                    , NULL , ui_menu_file_save_as_cb      , 0 , "<Item>"                        },
+	{ "/File/_Import"                     , NULL , NULL                         , 0 , "<Branch>"                      },
+	{ "/File/Import/_Character Separated" , NULL , ui_menu_file_import_csv_cb   , 0 , "<Item>"                        },
+	{ "/File/_Export"                     , NULL , NULL                         , 0 , "<Branch>"                      },
+	{ "/File/Export/_Postscript"          , NULL , ui_menu_file_export_ps_cb    , 0 , "<Item>"                        },
+	{ "/File/sep1"                        , NULL , NULL                         , 0 , "<Separator>"                   },
+	{ "/File/_Quit"                       , NULL , ui_menu_file_quit_cb         , 0 , "<StockItem>", GTK_STOCK_QUIT   },
+	{ "/_Edit"                            , NULL , NULL                         , 0 , "<Branch>"                      },
+	{ "/Edit/Cu_t"                        , NULL , NULL                         , 0 , "<StockItem>", GTK_STOCK_CUT    },
+	{ "/Edit/_Copy"                       , NULL , NULL                         , 0 , "<StockItem>", GTK_STOCK_COPY   },
+	{ "/Edit/_Paste"                      , NULL , NULL                         , 0 , "<StockItem>", GTK_STOCK_PASTE  },
+	{ "/Edit/sep1"                        , NULL , NULL                         , 0 , "<Separator>"                   },
+	{ "/_Column"                          , NULL , NULL                         , 0 , "<Branch>"                      },
+	{ "/Column/_Add"                      , NULL , ui_menu_column_add_cb        , 0 , "<StockItem>", GTK_STOCK_ADD    },
+	{ "/Column/_Delete"                   , NULL , ui_menu_column_delete_cb     , 0 , "<StockItem>", GTK_STOCK_DELETE },
+	{ "/Column/_Rename"                   , NULL , ui_menu_column_rename_cb     , 0 , "<Item>"                        },
+	{ "/_Row"                             , NULL , NULL                         , 0 , "<Branch>"                      },
+	{ "/Row/_Add"                         , NULL , ui_menu_row_add_cb           , 0 , "<StockItem>", GTK_STOCK_ADD    },
+	{ "/Row/_Delete"                      , NULL , ui_menu_row_delete_cb        , 0 , "<StockItem>", GTK_STOCK_DELETE },
 #ifdef _DEBUG
-	{ "/_Debug"              , NULL, NULL                        , 0, "<Branch>"                      },
-	{ "/Debug/_Add test data", NULL, ui_menu_debug_addtestdata_cb, 0, "<Item>"                        },
-	{ "/Debug/Add test _rows", NULL, ui_menu_debug_addtestrows_cb, 0, "<Item>"                        },
+	{ "/_Debug"                           , NULL , NULL                         , 0 , "<Branch>"                      },
+	{ "/Debug/_Add test data"             , NULL , ui_menu_debug_addtestdata_cb , 0 , "<Item>"                        },
+	{ "/Debug/Add test _rows"             , NULL , ui_menu_debug_addtestrows_cb , 0 , "<Item>"                        },
 #endif
-	{ "/_Help"               , NULL, NULL                        , 0, "<LastBranch>"                  },
-	{ "/_Help/About"         , NULL, ui_menu_help_about_cb       , 0, "<Item>"                        },
+	{ "/_Help"                            , NULL , NULL                         , 0 , "<LastBranch>"                  },
+	{ "/_Help/About"                      , NULL , ui_menu_help_about_cb        , 0 , "<Item>"                        },
 };
 
 static gint ui_nmenu_items = sizeof (ui_menu_items) / sizeof (ui_menu_items[0]);
@@ -330,6 +332,8 @@ void list_column_add (list_ *list, char *title) {
 	gtk_tree_view_set_model (list->treeview, GTK_TREE_MODEL(list->liststore));
 	
 	list->nr_of_cols++;
+	list->modified = TRUE;
+	
 }
 
 void list_column_delete (list_ *list, GtkTreeViewColumn *column) {
@@ -414,6 +418,8 @@ void list_column_delete (list_ *list, GtkTreeViewColumn *column) {
 	}
 
 	list->nr_of_cols--;
+	list->modified = TRUE;
+
 }
 
 void list_row_add_empty (list_ *list) {
@@ -430,6 +436,8 @@ void list_row_add_empty (list_ *list) {
 	}
 
 	list->nr_of_rows++;
+	list->modified = TRUE;
+	
 }
 
 void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
@@ -446,6 +454,7 @@ void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
 	}
 
 	list->nr_of_rows++;
+	list->modified = TRUE;
 }
 
 list_ *list_create (void) {
@@ -469,6 +478,8 @@ list_ *list_create (void) {
 	treeselection = gtk_tree_view_get_selection (GTK_TREE_VIEW(list->treeview));
 	gtk_tree_selection_set_mode (treeselection, GTK_SELECTION_SINGLE);
 	
+	list->modified = FALSE;
+
 	return (list);
 }
 
@@ -532,6 +543,8 @@ int list_import_csv (list_ *list, char *filename, char delimiter) {
 	}
 	
 	fclose (f);
+
+	list->modified = FALSE;
 
 	return (failed_rows);
 }
@@ -730,6 +743,7 @@ int list_load (list_ *list, char *filename) {
 	free (rowdata);
 
 	list->filename = strdup(filename);
+	list->modified = FALSE;
 
 	return (0);
 }
@@ -773,6 +787,8 @@ int list_save (list_ *list, char *filename) {
 	xmlSaveFormatFileEnc (filename, doc, "ISO-8859-1", 1);
 	
 	list->filename = strdup(filename);
+	list->modified = FALSE;
+
 	return (0);
 }
 
@@ -1001,32 +1017,62 @@ void ui_file_save_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 }
 
 void ui_menu_file_save_cb (void) {
-	GtkWidget *win_file_save;
+	GtkWidget *dia_file_save;
+	int response;
 
 	if (list->filename == NULL) {
-		win_file_save = gtk_file_selection_new ("Save file");
+		dia_file_save = gtk_file_chooser_dialog_new (
+				"Save",
+				GTK_WINDOW(win_main),
+				GTK_FILE_CHOOSER_ACTION_SAVE, 
+				NULL);
+		gtk_dialog_add_buttons (
+				GTK_DIALOG(dia_file_save),
+				GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
+				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
+				NULL);
 		
-		/* FIXME: Use gtk_dialog_add_buttons and gtk_dialog_run */
-		g_signal_connect (
-				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
-				"clicked", 
-				G_CALLBACK (ui_file_save_btn_ok_cb), 
-				(gpointer) win_file_save);
-		g_signal_connect_swapped (
-				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
-				"clicked", 
-				G_CALLBACK (gtk_widget_destroy), 
-				G_OBJECT (win_file_save));
-		g_signal_connect_swapped (
-				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->cancel_button),
-				"clicked", 
-				G_CALLBACK (gtk_widget_destroy), 
-				G_OBJECT (win_file_save));
-		
-		gtk_widget_show (win_file_save);
-	} else {
-		list_save (list, list->filename);
+		response = gtk_dialog_run(GTK_DIALOG(dia_file_save));
+
+		if (response == GTK_RESPONSE_ACCEPT) {
+			list->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_save)));
+			gtk_widget_destroy (dia_file_save);
+		} else {
+			gtk_widget_destroy (dia_file_save);
+			return;
+		}
 	}
+
+	printf ("ui_menu_file_save\n");
+
+	list_save (list, list->filename);
+
+//	GtkWidget *win_file_save;
+//
+//	if (list->filename == NULL) {
+//		win_file_save = gtk_file_selection_new ("Save file");
+//		
+//		/* FIXME: Use gtk_dialog_add_buttons and gtk_dialog_run */
+//		g_signal_connect (
+//				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
+//				"clicked", 
+//				G_CALLBACK (ui_file_save_btn_ok_cb), 
+//				(gpointer) win_file_save);
+//		g_signal_connect_swapped (
+//				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->ok_button),
+//				"clicked", 
+//				G_CALLBACK (gtk_widget_destroy), 
+//				G_OBJECT (win_file_save));
+//		g_signal_connect_swapped (
+//				G_OBJECT (GTK_FILE_SELECTION (win_file_save)->cancel_button),
+//				"clicked", 
+//				G_CALLBACK (gtk_widget_destroy), 
+//				G_OBJECT (win_file_save));
+//		
+//		gtk_widget_show (win_file_save);
+//	} else {
+//		list_save (list, list->filename);
+//	}
 }
 
 /* File save as... */
@@ -1037,6 +1083,47 @@ void ui_menu_file_save_as_cb (void) {
 	list->filename = NULL;
 	ui_menu_file_save_cb();
 	list->filename = old_filename;
+}
+
+void ui_menu_file_quit_cb (void) {
+	if (list->modified == TRUE) {
+		GtkWidget *dia_modified;
+		GtkWidget *lbl_modified;
+		int result;
+		
+		dia_modified = gtk_dialog_new_with_buttons(
+				"Save changes?",
+				GTK_WINDOW(win_main),
+				GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_STOCK_YES, GTK_RESPONSE_YES,
+				GTK_STOCK_NO, GTK_RESPONSE_NO,
+				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				NULL);
+		
+		lbl_modified = gtk_label_new("List was modified. Do you want to save?");
+
+		gtk_box_pack_start (GTK_BOX(GTK_DIALOG(dia_modified)->vbox), GTK_WIDGET(lbl_modified), FALSE, TRUE, 5);
+		
+		gtk_widget_show_all (dia_modified);
+
+		result = gtk_dialog_run (GTK_DIALOG(dia_modified));
+
+		gtk_widget_destroy (dia_modified);
+
+		switch (result) {
+			case GTK_RESPONSE_YES: 
+				printf ("ui_menu_file_quit: accept - pre\n");
+				ui_menu_file_save_cb();
+				printf ("ui_menu_file_quit: accept - post\n");
+				break;
+			case GTK_RESPONSE_CANCEL:
+				return;
+				break;
+			default:
+				break;
+		}
+	}
+	gtk_main_quit();
 }
 
 /* Column menu options */
@@ -1198,6 +1285,8 @@ void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *ne
 	}
 	
 	gtk_list_store_set (GTK_LIST_STORE(list->liststore), &iter, col, new_text, -1);
+
+	list->modified = TRUE;
 }
 
 
