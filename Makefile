@@ -15,9 +15,9 @@ FLAGS = -Wall -c -g
 #	$(CC) $(FLAGS) $(INCS) libxmlext.c
 
 main: listpatron
-listpatron: listpatron.o
+listpatron: list.o debug.o libgtkext.o listpatron.o 
 	$(CC) -Wall -g libgtkext.o debug.o listpatron.o libxmlext.o list.o $(LIBS) $(INCS) -o listpatron 
-listpatron.o: list.o debug.o libgtkext.o listpatron.c listpatron.h splash.h
+listpatron.o: listpatron.c listpatron.h splash.h
 	$(CC) $(FLAGS) $(INCS) listpatron.c
 list.o: libxmlext.o list.c list.h
 	$(CC) $(FLAGS) $(INCS) list.c
