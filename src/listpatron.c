@@ -57,7 +57,6 @@ typedef struct list_ {
 	char *description;
 	char *keywords;
 
-	GtkTreeView *treeview;
 	GtkListStore *liststore;
 	int nr_of_cols;
 	int nr_of_rows;
@@ -106,8 +105,10 @@ int list_export_ps(list_ *list, char *filename, int orientation);
 int list_export_html(list_ *list, char *filename);
 int list_load(list_ *list, char *filename);
 int list_save(list_ *list, char *filename);
+int list_save_check(list_ *list);
 
 /* Menu callback functions */
+void ui_menu_file_new_cb(void);
 void ui_menu_file_import_csv_cb(void);
 void ui_menu_file_export_ps_cb(void);
 void ui_menu_file_export_html_cb(void);
@@ -136,7 +137,7 @@ GtkWidget *ui_create_menubar(GtkWidget *window);
  ****************************************************************************/
 static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/_File"                            , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/File/_New"                        , NULL , list_column_add              , 0 , "<StockItem>", GTK_STOCK_NEW    },
+	{ "/File/_New"                        , NULL , ui_menu_file_new_cb          , 0 , "<StockItem>", GTK_STOCK_NEW    },
 	{ "/File/_Open"                       , NULL , ui_menu_file_open_cb         , 0 , "<StockItem>", GTK_STOCK_OPEN   },
 	{ "/File/_Save"                       , NULL , ui_menu_file_save_cb         , 0 , "<StockItem>", GTK_STOCK_SAVE   },
 	{ "/File/Save _As"                    , NULL , ui_menu_file_save_as_cb      , 0 , "<Item>"                        },
@@ -173,6 +174,7 @@ GtkWidget *win_main;
 GtkWidget *lbl_listtitle;
 guint sb_context_id;
 GtkWidget *sb_status;
+GtkTreeView *treeview;
 
 static int 
 	opt_help,
@@ -452,7 +454,7 @@ void list_column_add(list_ *list, char *title) {
 	gtk_tree_view_column_set_reorderable(GTK_TREE_VIEW_COLUMN(col), TRUE);
 	gtk_tree_view_column_set_sort_column_id(GTK_TREE_VIEW_COLUMN(col), list->nr_of_cols);
 
-	gtk_tree_view_append_column(list->treeview, col);
+	gtk_tree_view_append_column(treeview, col);
 
 	/* ListStore: Rebuild from scratch because columns can't be added */
 
@@ -494,7 +496,7 @@ void list_column_add(list_ *list, char *title) {
 		}
 	}
 
-	gtk_tree_view_set_model(list->treeview, GTK_TREE_MODEL(list->liststore));
+	gtk_tree_view_set_model(treeview, GTK_TREE_MODEL(list->liststore));
 	
 	list->nr_of_cols++;
 	list->modified = TRUE;
@@ -516,7 +518,7 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 
 	/* Treeview: Remove column and update other columns to compensate for 
 	 * shifting in liststore */
-	columns = gtk_tree_view_get_columns(list->treeview);
+	columns = gtk_tree_view_get_columns(treeview);
 	column_iter = columns;
 	while (column_iter != NULL) {
 		int col_nr;
@@ -539,7 +541,7 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 	}
 	g_list_free (columns);
 	
-	gtk_tree_view_remove_column(list->treeview, column);
+	gtk_tree_view_remove_column(treeview, column);
 		
 	/* Rewrite liststore from scratch because GTK won't allow us to remove 
 	 * columns */
@@ -584,7 +586,7 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 			}
 		}
 		
-		gtk_tree_view_set_model(list->treeview, GTK_TREE_MODEL(list->liststore));
+		gtk_tree_view_set_model(treeview, GTK_TREE_MODEL(list->liststore));
 	}
 
 	list->nr_of_cols--;
@@ -650,7 +652,6 @@ void list_title_set(char *title) {
 
 list_ *list_create(void) {
 	list_ *list = NULL;
-	GtkTreeSelection *treeselection;
 	list = malloc(sizeof(list_)); /* FIXME: Not freed */
 
 	list->version     = strdup("0.1");      /* FIXME: Not freed */
@@ -659,24 +660,52 @@ list_ *list_create(void) {
 	list->description = strdup("");         /* FIXME: Not freed */
 	list->keywords    = strdup("");         /* FIXME: Not freed */
 	list->filename    = NULL;
-	list->treeview    = NULL;
 	list->liststore   = NULL;
 	list->nr_of_cols  = 0;
 	list->nr_of_rows  = 0;
 
-	list->treeview  = GTK_TREE_VIEW(gtk_tree_view_new());
-	gtk_signal_connect(
-			GTK_OBJECT(list->treeview),
-			"cursor-changed",
-			G_CALLBACK(ui_treeview_cursor_changed_cb),
-			NULL);
-	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(list->treeview), 1);
-	treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list->treeview));
-	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_SINGLE);
-	
 	list->modified = FALSE;
 
 	return (list);
+}
+
+void list_clear(list_ *lst) {
+	int response;
+
+	if (list != NULL) {
+		response = list_save_check(list);
+		if (response != -1) { /* Not cancelled */
+			GList *columns = NULL, *column_iter;
+			
+			/* Clear the data */
+			if (list->liststore != NULL) {
+				gtk_list_store_clear(list->liststore);
+			}
+			
+			/* Throw away columns in the treeview */
+			g_object_ref (treeview);
+			columns = gtk_tree_view_get_columns(treeview);
+			column_iter = columns;
+			while (column_iter != NULL) {
+				list_column_delete(list, GTK_TREE_VIEW_COLUMN(column_iter->data));
+				column_iter = column_iter->next;
+			}
+			g_list_free(columns);
+
+			/* Deep free list structure */
+			if (list->version != NULL) { free(list->version); }
+			if (list->title != NULL) { free(list->title); }
+			if (list->author != NULL) { free(list->author); }
+			if (list->description != NULL) { free(list->description); }
+			if (list->keywords != NULL) { free(list->keywords); }
+			if (list->filename != NULL) { free(list->filename); }
+
+			free (list);
+			list = NULL; /* FIXME: Does this reference the local or global var? */
+		}
+	} else {
+		gtk_statusbar_msg ("It's really empty. Don't worry");
+	}
 }
 
 int list_import_csv(list_ *list, char *filename, char delimiter) {
@@ -830,7 +859,7 @@ newpath\n\
 %i vpos moveto\n\
 ", margin_left);
 
-	columns = gtk_tree_view_get_columns(list->treeview);
+	columns = gtk_tree_view_get_columns(treeview);
 	column_iter = columns;
 	while (column_iter) {
 		column_iter = column_iter->next;
@@ -891,7 +920,7 @@ int list_export_html(list_ *list, char *filename) {
 		<tr>");
 	
 	/* Save column headers */
-	columns = gtk_tree_view_get_columns(list->treeview);
+	columns = gtk_tree_view_get_columns(treeview);
 	column_iter = columns;
 	while (column_iter) {
 		fprintf(f, "\t\t\t\t<th>%s</th>\n", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
@@ -1114,7 +1143,7 @@ int list_save(list_ *list, char *filename) {
 	/* Save column header information <header> */
 	node_header = xmlNewChild(node_root, NULL, (const xmlChar *)"header", NULL);
 	
-	columns = gtk_tree_view_get_columns(list->treeview);
+	columns = gtk_tree_view_get_columns(treeview);
 	column_iter = columns;
 	while (column_iter) {
 		xml_add_element_content(node_header, "columnname", "%s", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
@@ -1144,6 +1173,51 @@ int list_save(list_ *list, char *filename) {
 	return (0);
 }
 
+/* returns  1 if the user requested the file should be saved,
+ *         -1 if the user want's to stop the operation
+ *          0 list doesn't need to be saved */
+int list_save_check(list_ *list) {
+	if (list->modified == TRUE) {
+		GtkWidget *dia_modified;
+		GtkWidget *lbl_modified;
+		int result;
+		
+		dia_modified = gtk_dialog_new_with_buttons(
+				"Save changes?",
+				GTK_WINDOW(win_main),
+				GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_STOCK_YES, GTK_RESPONSE_YES,
+				GTK_STOCK_NO, GTK_RESPONSE_NO,
+				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				NULL);
+		
+		lbl_modified = gtk_label_new("List was modified. Do you want to save?");
+
+		gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dia_modified)->vbox), GTK_WIDGET(lbl_modified), FALSE, TRUE, 5);
+		
+		gtk_widget_show_all(dia_modified);
+
+		result = gtk_dialog_run(GTK_DIALOG(dia_modified));
+
+		gtk_widget_destroy(dia_modified);
+
+		switch (result) {
+			case GTK_RESPONSE_YES: 
+				ui_menu_file_save_cb();
+				return (1);
+				break;
+			case GTK_RESPONSE_CANCEL:
+				return (-1); /* Cancel operation */
+				break;
+			default:
+				return (0); /* No need to save */
+				break;
+		}
+	} else {
+		return (0); /* No need to save */
+	}
+}
+
 /****************************************************************************
  * Callbacks 
  ****************************************************************************/
@@ -1154,7 +1228,7 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	char *path_str;
 	int col, row;
 
-	gtk_tree_view_get_cursor(list->treeview, &path, &column);
+	gtk_tree_view_get_cursor(treeview, &path, &column);
 	if (path != NULL) {
 		path_str = gtk_tree_path_to_string(path);
 		gtk_tree_path_free(path);
@@ -1164,6 +1238,12 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 
 		gtk_statusbar_msg("Row %i, Column %i", row+1, col+1);
 	}
+}
+
+void ui_menu_file_new_cb(void) {
+
+	list_clear (list);
+	list = list_create();
 }
 
 /* File open */
@@ -1426,7 +1506,9 @@ void ui_menu_file_save_cb(void) {
 		}
 	}
 
-	list_save(list, list->filename);
+	if (list->filename != NULL) {
+		list_save(list, list->filename);
+	}
 }
 
 /* File save as... */
@@ -1440,42 +1522,12 @@ void ui_menu_file_save_as_cb(void) {
 }
 
 void ui_menu_file_quit_cb(void) {
-	if (list->modified == TRUE) {
-		GtkWidget *dia_modified;
-		GtkWidget *lbl_modified;
-		int result;
-		
-		dia_modified = gtk_dialog_new_with_buttons(
-				"Save changes?",
-				GTK_WINDOW(win_main),
-				GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-				GTK_STOCK_YES, GTK_RESPONSE_YES,
-				GTK_STOCK_NO, GTK_RESPONSE_NO,
-				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-				NULL);
-		
-		lbl_modified = gtk_label_new("List was modified. Do you want to save?");
+	int response;
 
-		gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dia_modified)->vbox), GTK_WIDGET(lbl_modified), FALSE, TRUE, 5);
-		
-		gtk_widget_show_all(dia_modified);
-
-		result = gtk_dialog_run(GTK_DIALOG(dia_modified));
-
-		gtk_widget_destroy(dia_modified);
-
-		switch (result) {
-			case GTK_RESPONSE_YES: 
-				ui_menu_file_save_cb();
-				break;
-			case GTK_RESPONSE_CANCEL:
-				return;
-				break;
-			default:
-				break;
-		}
+	response = list_save_check(list);
+	if (response != -1) {
+		gtk_main_quit();
 	}
-	gtk_main_quit();
 }
 
 /* Column menu options */
@@ -1494,7 +1546,7 @@ void ui_menu_column_rename_cb(void) {
 	GtkTreePath *path;
 	GtkTreeViewColumn *column;
 	
-	gtk_tree_view_get_cursor(list->treeview, &path, &column);
+	gtk_tree_view_get_cursor(treeview, &path, &column);
 	if (path != NULL) {
 		gtk_tree_path_free(path);
 	}
@@ -1517,7 +1569,7 @@ void ui_menu_column_delete_cb(void) {
 	GtkTreePath *path;
 	GtkTreeViewColumn *column;
 	
-	gtk_tree_view_get_cursor(list->treeview, &path, &column);
+	gtk_tree_view_get_cursor(treeview, &path, &column);
 	if (path != NULL) {
 		gtk_tree_path_free(path);
 	}
@@ -1535,7 +1587,7 @@ void ui_menu_row_delete_cb(void) {
 	GtkTreeViewColumn *column; /* Unused */
 	GtkTreeIter iter;
 
-	gtk_tree_view_get_cursor(list->treeview, &path, &column);
+	gtk_tree_view_get_cursor(treeview, &path, &column);
 	
 	if (path != NULL) { /* Row selected? */
 		if (!gtk_tree_model_get_iter(GTK_TREE_MODEL(list->liststore), &iter, path)) {
@@ -1644,7 +1696,7 @@ void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new
 	int col;
 	
 	/* Get column number */
-	gtk_tree_view_get_cursor(list->treeview, &path, &column);
+	gtk_tree_view_get_cursor(treeview, &path, &column);
 	if (path != NULL) {
 		gtk_tree_path_free(path);
 	}
@@ -1693,6 +1745,22 @@ GtkWidget *ui_create_statusbar(GtkWidget *window) {
 }
 void dialog_about_btn_ok_cb(GtkWidget *widget, GtkWidget *win) {
 	gtk_widget_destroy(win);
+}
+
+GtkWidget *ui_create_tree_view(void) {
+	GtkTreeSelection *treeselection;
+
+	treeview = GTK_TREE_VIEW(gtk_tree_view_new());
+	gtk_signal_connect(
+			GTK_OBJECT(treeview),
+			"cursor-changed",
+			G_CALLBACK(ui_treeview_cursor_changed_cb),
+			NULL);
+	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(treeview), 1);
+	treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
+	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_SINGLE);
+
+	return (GTK_WIDGET(treeview));
 }
 
 void ui_menu_help_about_cb(void) {
@@ -1860,7 +1928,7 @@ int main(int argc, char *argv[]) {
 
 	win_scroll = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(win_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_container_add(GTK_CONTAINER(win_scroll), GTK_WIDGET(list->treeview));
+	gtk_container_add(GTK_CONTAINER(win_scroll), ui_create_tree_view());
 	
 	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menubar(win_main)), FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_listtitle()), FALSE, TRUE, 0);
