@@ -17,8 +17,6 @@ typedef struct list_ {
  * Prototyping
  ****************************************************************************/
 /* List handling functions */
-
-void list_columns_set (list_ *list, int nr_of_cols, char *titles[]);
 void list_column_add (list_ *list, char *title);
 void list_column_delete (list_ *list);
 void list_row_add_empty (list_ *list);
@@ -105,56 +103,6 @@ char *gtk_input_dialog (char *message, char *prefill) {
 /****************************************************************************
  * List handling functions
  ****************************************************************************/
-void list_columns_set (list_ *list, int nr_of_cols, char *titles[]) {
-	int i;
-	GType *types = NULL;
-	GtkCellRenderer *renderer = NULL;
-	GList *old_cols = NULL;
-	GList *list_iter = NULL;
-	
-	/* Dettach the treemodel from the view and discard it */
-	gtk_tree_view_set_model(list->treeview, NULL);
-
-	/* Clear columns in tree view */
-	old_cols = gtk_tree_view_get_columns(list->treeview);
-	list_iter = old_cols;
-	while (list_iter) {
-		gtk_tree_view_remove_column(list->treeview, list_iter->data);
-		list_iter = g_list_next (list_iter);
-	}
-	g_list_free (old_cols);
-
-	/* Create new Treeview columns */
-	for (i = 0; i < nr_of_cols; i++) {
-//		list_column_add (list, titles[i]);
-		renderer = gtk_cell_renderer_text_new();
-		g_object_set(renderer, "editable", TRUE, NULL);
-//		g_object_set(renderer, "mode", GTK_CELL_RENDERER_SELECTED, NULL);
-		gtk_tree_view_insert_column_with_attributes (
-				GTK_TREE_VIEW(list->treeview),
-				-1,
-				titles[i],
-				renderer,
-				"text", i,
-				NULL);
-		g_signal_connect (renderer, "edited", (GCallback) ui_cell_edited_cb, NULL);
-	}
-	
-	/* Create new Liststore from columns */
-	types = malloc(sizeof(GType) * nr_of_cols);
-	for (i = 0; i < nr_of_cols; i++) {
-		types[i] = G_TYPE_STRING;
-	}
-	list->liststore = gtk_list_store_newv (nr_of_cols, types);
-	gtk_list_store_set_column_types (list->liststore, nr_of_cols, types);
-
-	/* Re-attach the model to the view */
-	gtk_tree_view_set_model (list->treeview, GTK_TREE_MODEL(list->liststore));
-	g_object_unref (list->liststore); /* Garbage collection */
-
-	return;
-}
-
 void list_column_add (list_ *list, char *title) {
 	GList *columns = NULL;
 	int nr_of_cols = 0;
