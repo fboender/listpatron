@@ -984,6 +984,8 @@ int list_load_rows(list_ *list, xmlNodeSetPtr nodeset_rows) {
 
 int list_load(list_ *list, char *filename) {
 	xmlDocPtr doc;
+	xmlDtdPtr dtd;
+	gchar *filename_dtd;
 	int pos_x, pos_y, dim_width, dim_height;
 	xmlNodeSetPtr nodeset = NULL;
 	xmlValidCtxtPtr valid_ctxt = NULL;
@@ -998,8 +1000,12 @@ int list_load(list_ *list, char *filename) {
 		return (-1); /* Couldn't open file */
 	}
 	
+	filename_dtd = g_build_filename(DATADIR, "xml", "listpatron", "listpatron.dtd", NULL);
+	dtd = xmlParseDTD(NULL, filename_dtd);
+	g_free(filename_dtd);
+
 	valid_ctxt = xmlNewValidCtxt();
-	if (!xmlValidateDocument(valid_ctxt, doc)) {
+	if (!xmlValidateDtd(valid_ctxt, doc, dtd)) {
 		return (-2); /* Invalid Listpatron file */
 	}
 
@@ -1128,6 +1134,7 @@ int list_save(list_ *list, char *filename) {
 		dim_width, 
 		dim_height;
 	gchar *row_data;
+	gchar *filename_dtd = NULL;
 	int i;
 	
 	assert(filename != list->filename);
@@ -1137,7 +1144,9 @@ int list_save(list_ *list, char *filename) {
 
 	/* Create XML document */
 	doc = xmlNewDoc("1.0");
-	xmlCreateIntSubset(doc, "list", NULL, "data/listpatron.dtd");
+	filename_dtd = g_build_filename("listpatron.dtd", NULL);
+	xmlCreateIntSubset(doc, "list", NULL, filename_dtd);
+	g_free(filename_dtd);
 
 	node_root = xmlNewDocNode(doc, NULL, (const xmlChar *)"list", NULL);
 	xmlDocSetRootElement(doc, node_root);
