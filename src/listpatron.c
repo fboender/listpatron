@@ -155,6 +155,7 @@ void list_column_add (list_ *list, char *title) {
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *col;
 	GType *types = NULL;
+	GtkListStore *liststore_old = NULL;
 	int i;
 	
 	columns = gtk_tree_view_get_columns(list->treeview);
@@ -166,6 +167,7 @@ void list_column_add (list_ *list, char *title) {
 	col = gtk_tree_view_column_new_with_attributes(
 			title, 
 			renderer,
+			"text", 0,
 			NULL);
 	g_signal_connect (renderer, "edited", (GCallback) ui_cell_edited_cb, NULL);
 
@@ -176,13 +178,35 @@ void list_column_add (list_ *list, char *title) {
 
 	/* Here we build a whole new liststore with the new column because
 	 * we can't simply add an column to the liststore. */
+
+	/* Remember the old liststore */
+	if (list->liststore != NULL) {
+		liststore_old = list->liststore;
+	}
+	
 	types = malloc(sizeof(GType) * (nr_of_cols + 1));
 	for (i = 0; i < (nr_of_cols + 1); i++) {
 		types[i] = G_TYPE_STRING;
 	}
-	list->liststore = gtk_list_store_newv (nr_of_cols, types);
+	list->liststore = gtk_list_store_newv (nr_of_cols + 1, types);
+
+	if (liststore_old != NULL) {
+		gchar *row_data;
+		GtkTreeIter iter;
+		
+		if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL(liststore_old), &iter)) {
+			/* Copy old liststore to new liststore */
+			for (i = 0; i < nr_of_cols; i++) {
+				gtk_tree_model_get (GTK_TREE_MODEL(liststore_old), &iter, i, &row_data, -1);
+				printf ("%s\n", (char *)row_data);
+				/* FIXME: Insert old column value into new liststore */
+			}
+			/* Clean up old liststore */
+		}
+	}
 	gtk_list_store_set_column_types (list->liststore, nr_of_cols + 1, types);
 
+	gtk_tree_view_set_model (list->treeview, GTK_TREE_MODEL(list->liststore));
 	
 }
 
@@ -196,6 +220,7 @@ void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
 
 	gtk_list_store_append (list->liststore, &treeiter);
 	for (i = 0; i < nr_of_cols; i++) {
+		printf ("list_row_add: values[i] = %s\n", values[i]);
 		gtk_list_store_set (list->liststore, &treeiter, i, values[i], -1);
 	}
 }
@@ -206,8 +231,12 @@ list_ *list_create (void) {
 	GtkTreeSelection *treeselection;
 	list = malloc(sizeof(list_));
 
+	list->treeview = NULL;
+	list->liststore = NULL;
+
 	list->treeview  = GTK_TREE_VIEW (gtk_tree_view_new());
 	list_column_add (list, "Column A");
+//	list_column_add (list, "Column B");
 	
 	treeselection = gtk_tree_view_get_selection (GTK_TREE_VIEW(list->treeview));
 	gtk_tree_selection_set_mode (treeselection, GTK_SELECTION_NONE);
@@ -358,10 +387,21 @@ int main (int argc, char *argv[]) {
 	vbox_main = gtk_vbox_new (FALSE, 2);
 
 	list = list_create();
-	list_columns_set (list, 2, cols);
-	list_row_add (list, 2, vals);
-	list_row_add (list, 2, vals);
-	list_row_add (list, 2, vals);
+//	list_column_add (list, "Col A");
+//	list_column_add (list, "Col B");
+//	{
+//		GtkTreeIter treeiter;
+//		gtk_list_store_append (list->liststore, &treeiter);
+//		gtk_list_store_set (list->liststore, &treeiter, 0, "Mies", 1, "boom", -1);
+//	}
+//	list_row_add (list, 2, vals);
+//	list_row_add (list, 2, vals);
+//	list_row_add (list, 2, vals);
+	
+//	list_columns_set (list, 2, cols);
+//	list_row_add (list, 2, vals);
+//	list_row_add (list, 2, vals);
+//	list_row_add (list, 2, vals);
 
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menubar(win_main)), FALSE, TRUE, 0);
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(list->treeview), FALSE, TRUE, 0);
