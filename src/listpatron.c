@@ -668,33 +668,55 @@ newpath\n\
 
 int list_load (list_ *list, char *filename) {
 	xmlDocPtr doc;
-	xmlNodePtr node_header = NULL, node_rowdata = NULL;
+	xmlNodePtr 
+		node_state = NULL, 
+		node_header = NULL, 
+		node_rowdata = NULL;
+	xmlNodePtr node_appstate_pos, node_appstate_dim;
 	xmlNodePtr node_cols, node_rows;
+	int appstate_width, appstate_height, appstate_posx, appstate_posy;
 	char **rowdata;
 	
 	if ((doc = xmlReadFile (filename, NULL, 0)) == NULL) {
 		return (-1);
 	}
 
-	/* Check if XML document is valid listpatron XML file */
+	/* Check if XML document is valid listpatron XML file (sort of) */
 	/* I want to shoot myself for this. Too lazy to write a DTD, besides, it
 	 * wouldn't find all errors */
-	if (doc->children) {
-		if (doc->children->children) {
-			if (doc->children->children->next) {
-				node_header = doc->children->children->next;
-				if (node_header->next) {
-					if (node_header->next->next) {
-						node_rowdata = node_header->next->next;
+	if (doc->children) { /* <list> */
+		if (doc->children->children) { /* <list> contents */
+			if (doc->children->children->next) { /* <state> */
+				node_state = doc->children->children->next;
+
+				if (node_state->next) {
+					if (node_state->next->next) { /* <header> */
+						node_header = node_state->next->next;
+						if (node_header->next) { 
+							if (node_header->next->next) { /* rowdata */
+								node_rowdata = node_header->next->next;
+							}
+						}
 					}
 				}
 			}
 		}
 	}
 
-	if (!node_header || !node_rowdata) {
+	if (!node_state || !node_header || !node_rowdata) {
 		return (-1); /* Invalid listpatron file */
 	}
+
+	/* Read application state and ajust accordingly */
+	node_appstate_pos = node_state->children->next->children->next;
+	appstate_posx = atoi(node_appstate_pos->children->content);
+	appstate_posy = atoi(node_appstate_pos->next->next->children->content);
+	node_appstate_dim = node_state->children->next->next->next->children->next;
+	appstate_width = atoi(node_appstate_dim->children->content);
+	appstate_height = atoi(node_appstate_dim->next->next->children->content);
+
+	gtk_window_move (GTK_WINDOW(win_main), appstate_posx, appstate_posy);
+	gtk_window_resize (GTK_WINDOW(win_main), appstate_width, appstate_height);
 
 	/* Read columns and adjust list */
 	list->nr_of_cols = 0;
@@ -750,7 +772,21 @@ int list_load (list_ *list, char *filename) {
 
 int list_save (list_ *list, char *filename) {
 	xmlDocPtr doc;
-	xmlNodePtr node_root, node_header, node_rowdata, node_row;
+	xmlNodePtr 
+		node_root, 
+		node_appstate, node_pos, node_dim,
+		node_header, 
+		node_rowdata, 
+		node_row;
+	int appstate_width, 
+		appstate_height, 
+		appstate_posx, 
+		appstate_posy;
+	char 
+		*str_appstate_width, 
+		*str_appstate_height, 
+		*str_appstate_posx, 
+		*str_appstate_posy;
 	GtkTreeIter iter;
 	gchar *row_data;
 	GList *columns = NULL, *column_iter = NULL;
@@ -760,6 +796,33 @@ int list_save (list_ *list, char *filename) {
 	doc = xmlNewDoc ("1.0");
 	node_root = xmlNewDocNode(doc, NULL, (const xmlChar *)"list", NULL);
 	xmlDocSetRootElement (doc, node_root);
+
+	/* Save application state */
+	node_appstate = xmlNewChild (node_root, NULL, (const xmlChar *)"state", NULL);
+	node_pos = xmlNewChild (node_appstate, NULL, (const xmlChar *)"position", NULL);
+	node_dim = xmlNewChild (node_appstate, NULL, (const xmlChar *)"dimensions", NULL);
+	
+	gtk_window_get_size (GTK_WINDOW(win_main), &appstate_width, &appstate_height);
+	gtk_window_get_position (GTK_WINDOW(win_main), &appstate_posx, &appstate_posy);
+	str_appstate_width = malloc(sizeof(char) * 6); sprintf (str_appstate_width, "%i", appstate_width);
+	str_appstate_height = malloc(sizeof(char) * 6); sprintf (str_appstate_height, "%i", appstate_height);
+	str_appstate_posx = malloc(sizeof(char) * 6); sprintf (str_appstate_posx, "%i", appstate_posx);
+	str_appstate_posy = malloc(sizeof(char) * 6); sprintf (str_appstate_posy, "%i", appstate_posy);
+	xmlNewChild(node_dim, NULL, (const xmlChar *)"width", str_appstate_width);
+	xmlNewChild(node_dim, NULL, (const xmlChar *)"height", str_appstate_height);
+	xmlNewChild(node_pos, NULL, (const xmlChar *)"x", str_appstate_posx);
+	xmlNewChild(node_pos, NULL, (const xmlChar *)"y", str_appstate_posy);
+	free (str_appstate_width);
+	free (str_appstate_height);
+	free (str_appstate_posx);
+	free (str_appstate_posy);
+	
+	columns = gtk_tree_view_get_columns (list->treeview);
+	column_iter = columns;
+	while (column_iter) {
+		xmlNewChild(node_header, NULL, (const xmlChar *)"col", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
+		column_iter = column_iter->next;
+	}
 
 	/* Parse column information */
 	node_header = xmlNewChild (node_root, NULL, (const xmlChar *)"header", NULL);
