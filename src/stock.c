@@ -39,7 +39,7 @@ void load_stock_icons(void) {
 		GtkIconSet *icoset_ico = NULL;
 		char *filename;
 		
-		filename = g_build_filename(DATADIR, "icons", stock_icons[i].filename, NULL);
+		filename = g_build_filename(DATADIR, "pixmaps", "listpatron", "icons", stock_icons[i].filename, NULL);
 		pixb_ico = gdk_pixbuf_new_from_file(filename, &error);
 		
 		if (error != NULL) {
