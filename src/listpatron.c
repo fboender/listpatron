@@ -176,6 +176,7 @@ void list_column_add (list_ *list, char *title) {
 
 	gtk_tree_view_column_set_resizable (GTK_TREE_VIEW_COLUMN(col), TRUE);
 	gtk_tree_view_column_set_reorderable (GTK_TREE_VIEW_COLUMN(col), TRUE);
+	gtk_tree_view_column_set_sort_column_id (GTK_TREE_VIEW_COLUMN(col), nr_of_cols);
 
 	gtk_tree_view_append_column (list->treeview, col);
 
@@ -374,13 +375,13 @@ GtkWidget *ui_create_menubar (GtkWidget *window) {
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
-
 /****************************************************************************
  * Main
  ****************************************************************************/
 int main (int argc, char *argv[]) {
 	GtkWidget *win_main;
 	GtkWidget *vbox_main;
+	GtkWidget *win_scroll;
 
 	gtk_init (&argc, &argv);
 	g_type_init();
@@ -392,8 +393,12 @@ int main (int argc, char *argv[]) {
 
 	list = list_create();
 
+	win_scroll = gtk_scrolled_window_new (NULL, NULL);
+	gtk_scrolled_window_set_policy (win_scroll, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_container_add (GTK_CONTAINER(win_scroll), GTK_WIDGET(list->treeview));
+	
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menubar(win_main)), FALSE, TRUE, 0);
-	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(list->treeview), FALSE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(win_scroll), TRUE, TRUE, 0);
 
 	gtk_container_add (GTK_CONTAINER(win_main), vbox_main);
 
