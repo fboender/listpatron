@@ -3,15 +3,22 @@ BIN = /usr/bin/
 CC = gcc
 LIBS = `pkg-config --libs gtk+-2.0` `xml2-config --libs`
 INCS = `pkg-config --cflags gtk+-2.0` `xml2-config --cflags`
-FLAGS = -Wall -c -g
+#Debugging------------------------------------------------------------------
+#DEFS = -DDATADIR=\".\" -D_DEBUG
+#---------------------------------------------------------------------------
+DEFS = -DDATADIR=\".\"
+FLAGS = -Wall -c -g $(DEFS)
 
 main: listpatron
 
-listpatron: ui_rulelist.o ui_sort.o list.o debug.o libgtkext.o listpatron.o ui_import.o ui_export.o ui_find.o
-	$(CC) -Wall -g libgtkext.o debug.o listpatron.o libxmlext.o list.o ui_rulelist.o ui_sort.o ui_import.o ui_export.o ui_find.o $(LIBS) $(INCS) -o listpatron 
+listpatron: ui_rulelist.o ui_sort.o list.o debug.o libgtkext.o listpatron.o stock.o ui_import.o ui_export.o ui_find.o
+	$(CC) -Wall -g libgtkext.o debug.o listpatron.o stock.o libxmlext.o list.o ui_rulelist.o ui_sort.o ui_import.o ui_export.o ui_find.o $(LIBS) $(INCS) -o listpatron 
 
 listpatron.o: listpatron.c listpatron.h splash.h debug.h list.h splash.h libgtkext.h ui_sort.h ui_import.h ui_export.h ui_find.h menu_def.h
 	$(CC) $(FLAGS) $(INCS) listpatron.c
+
+stock.o: stock.c stock.h
+	$(CC) $(FLAGS) $(INCS) stock.c
 
 # User interface
 ui_rulelist.o: ui_rulelist.c ui_rulelist.h list.h libgtkext.h menu_def.h
