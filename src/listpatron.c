@@ -58,11 +58,13 @@ void list_column_delete (list_ *list, GtkTreeViewColumn *column);
 void list_row_add_empty (list_ *list);
 void list_row_add (list_ *list, int nr_of_cols, char *values[]);
 list_ *list_create (void);
+int list_import_csv (list_ *list, char *filename);
 int list_load (list_ *list, char *filename);
 int list_save (list_ *list, char *filename);
 /* Callback functions */
 void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data);
 
+void ui_menu_file_import_csv_cb (void);
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
 void ui_menu_file_save_as_cb (void);
@@ -86,6 +88,8 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/File/_Open"          , NULL, ui_menu_file_open_cb        , 0, "<StockItem>" , GTK_STOCK_OPEN  },
 	{ "/File/_Save"          , NULL, ui_menu_file_save_cb        , 0, "<StockItem>" , GTK_STOCK_SAVE  },
 	{ "/File/Save _As"       , NULL, ui_menu_file_save_as_cb     , 0, "<Item>"                        },
+	{ "/File/_Import"        , NULL, NULL                        , 0, "<Branch>"                      },
+	{ "/File/Import/_Comma Separated"        , NULL, ui_menu_file_import_csv_cb , 0, "<Item>"                      },
 	{ "/File/_Export"        , NULL, NULL                        , 0, "<Item>"                        },
 	{ "/File/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
 	{ "/File/_Quit"          , NULL, gtk_main_quit               , 0, "<StockItem>" , GTK_STOCK_QUIT  },
@@ -332,7 +336,11 @@ void list_row_add (list_ *list, int nr_of_cols, char *values[]) {
 
 	gtk_list_store_append (list->liststore, &treeiter);
 	for (i = 0; i < nr_of_cols; i++) {
-		gtk_list_store_set (list->liststore, &treeiter, i, values[i], -1);
+		if (values[i] != NULL) {
+			gtk_list_store_set (list->liststore, &treeiter, i, values[i], -1);
+		} else {
+			gtk_list_store_set (list->liststore, &treeiter, i, "", -1);
+		}
 	}
 
 	list->nr_of_rows++;
@@ -362,16 +370,97 @@ list_ *list_create (void) {
 	return (list);
 }
 
+int list_import_csv (list_ *list, char *filename) {
+	FILE *f = NULL;
+	char buf[4096];
+	int i = 0;
+	
+	if (!(f = fopen (filename, "r"))) {
+		return (-1);
+	}
+
+	/* Create columns */
+	fgets(buf, 4096, f);
+	printf ("%s\n", buf);
+	for (i = 0; i < strlen(buf); i++) {
+		if (buf[i] == ',') {
+			list_column_add (list, "Column");
+		}
+	}
+
+	if (list->nr_of_cols < 1) {
+		return (-1); /* Not a valid CSV */
+	}
+	
+	while (fgets(buf, 4096, f)) {
+		char *field_start = NULL;
+		char **rowdata = malloc(sizeof(char *) * list->nr_of_cols);
+		int col = 0, l = 0;
+		
+		l = strlen(buf);
+		field_start = &(buf[0]);
+		for (i = 0; i < l; i++) {
+			if (buf[i] == ',' && col < list->nr_of_cols) {
+				int read, write;
+				GError *error = NULL;
+				buf[i] = '\0';
+				rowdata[col] = g_locale_to_utf8(
+						field_start,
+						strlen(field_start),
+						&read,
+						&write,
+						&error);
+				if (error != NULL) {
+					printf ("Error : %i in %s\n", error->code, buf);
+				}
+						
+				field_start = &(buf[i+1]);
+				col++;
+			}
+		}
+		
+		if (col != list->nr_of_cols) {
+			printf ("Invalid row in comma seperated file\n");
+		} else {
+			list_row_add (list, list->nr_of_cols, rowdata);
+		}
+		free (rowdata);
+	}
+	
+	fclose (f);
+
+	return (0);
+}
+
 int list_load (list_ *list, char *filename) {
 	xmlDocPtr doc;
-	xmlNodePtr node_header, node_rowdata;
+	xmlNodePtr node_header = NULL, node_rowdata = NULL;
 	xmlNodePtr node_cols, node_rows;
 	char **rowdata;
 	
-	doc = xmlReadFile (filename, "ISO-8859-1", 0);
+	if ((doc = xmlReadFile (filename, NULL, 0)) == NULL) {
+		return (-1);
+	}
 
-	node_header = doc->children->children->next;
-	node_rowdata = doc->children->children->next->next->next;
+	/* Check if XML document is valid listpatron XML file */
+	/* I want to shoot myself for this. Too lazy to write a DTD, besides, it
+	 * wouldn't find all errors */
+	if (doc->children) {
+		if (doc->children->children) {
+			if (doc->children->children->next) {
+				node_header = doc->children->children->next;
+				if (node_header->next) {
+					if (node_header->next->next) {
+						node_rowdata = node_header->next->next;
+					}
+				}
+			}
+		}
+	}
+
+	if (!node_header || !node_rowdata) {
+		return (-1); /* Invalid listpatron file */
+	}
 
 	/* Read columns and adjust list */
 	list->nr_of_cols = 0;
@@ -379,7 +468,11 @@ int list_load (list_ *list, char *filename) {
 
 	while (node_cols != NULL) {
 		if (node_cols->type == XML_ELEMENT_NODE) {
-			list_column_add (list, node_cols->children->content);
+			if (node_cols->children == NULL) {
+				list_column_add (list, "");
+			} else {
+				list_column_add (list, node_cols->children->content);
+			}
 		}
 		node_cols = node_cols->next;
 	}
@@ -394,13 +487,21 @@ int list_load (list_ *list, char *filename) {
 			node_cols = node_rows->children;
 			while (node_cols != NULL) {
 				if (node_cols->type == XML_ELEMENT_NODE) {
-					rowdata[i] = node_cols->children->content;
+					if (node_cols->children == NULL) {
+						rowdata[i] = NULL;
+					} else {
+						rowdata[i] = node_cols->children->content;
+					}
 					i++;
 				}
 				node_cols = node_cols->next;
 			}
 
-			list_row_add (list, list->nr_of_cols, rowdata);
+			if (i == list->nr_of_cols) {
+				list_row_add (list, list->nr_of_cols, rowdata);
+			} else {
+				printf ("Invalid row in file\n");
+			}
 		}
 		node_rows = node_rows->next;
 	}
@@ -486,7 +587,9 @@ void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	
 	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
 	
-	list_load (list, filename);
+	if (list_load (list, filename) == -1) {
+		printf ("boem!\n");
+	}
 
 	sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
 	sprintf (sb_message, "File '%s' loaded.", filename);
@@ -494,6 +597,49 @@ void ui_file_open_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
 	free (sb_message);
 
 }
+
+void ui_file_import_csv_btn_ok_cb (GtkWidget *win, GtkFileSelection *fs) {
+	char *filename = NULL;
+	char *sb_message = NULL;
+	
+	filename = (char *)gtk_file_selection_get_filename (GTK_FILE_SELECTION(fs));
+	
+	if (list_import_csv (list, filename) == -1) {
+		printf ("Not a correct comma seperated file\n");
+	}
+
+	sb_message = malloc(sizeof(char) * (15 + strlen(filename) + 1));
+	sprintf (sb_message, "File '%s' loaded.", filename);
+	gtk_statusbar_push (GTK_STATUSBAR(sb_status), sb_context_id, sb_message);
+	free (sb_message);
+
+
+}
+
+void ui_menu_file_import_csv_cb (void) {
+	GtkWidget *win_file_open;
+
+	win_file_open = gtk_file_selection_new ("Open file");
+	
+    g_signal_connect (
+			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
+			"clicked", 
+			G_CALLBACK (ui_file_import_csv_btn_ok_cb), 
+			(gpointer) win_file_open);
+    g_signal_connect_swapped (
+			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
+			"clicked", 
+			G_CALLBACK (gtk_widget_destroy), 
+			G_OBJECT (win_file_open));
+    g_signal_connect_swapped (
+			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->cancel_button),
+			"clicked", 
+			G_CALLBACK (gtk_widget_destroy), 
+			G_OBJECT (win_file_open));
+	
+	gtk_widget_show (win_file_open);
+}
+
 
 void ui_menu_file_open_cb (void) {
 	GtkWidget *win_file_open;
