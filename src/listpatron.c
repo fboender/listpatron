@@ -155,6 +155,7 @@ void list_column_add (list_ *list, char *title) {
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *col;
 	GType *types = NULL;
+	int i;
 	
 	columns = gtk_tree_view_get_columns(list->treeview);
 	nr_of_cols = g_list_length(columns);
@@ -306,7 +307,7 @@ void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *ne
 	printf ("b\n");
 	gtk_tree_model_get_iter (GTK_TREE_MODEL(list->liststore), &iter, path);
 
-	gtk_tree_model_row_changed (list->liststore, path, &iter);
+	gtk_tree_model_row_changed (GTK_TREE_MODEL(list->liststore), path, &iter);
 	
 	printf ("c\n");
 	gtk_tree_model_get (GTK_TREE_MODEL(list->liststore), &iter, col, &old_text, -1);
