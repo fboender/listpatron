@@ -1,1 +1,24 @@
 * Lots of non-freed data.
+* Listpatron DTD v0.1 doesn't take in account Case (In)Sensitive matching in filters/sorts/etc.
+* Deprecated GTK items used:
+	- GtkItemFactory
+	- gtk_signal_connect
+* Structures used for inter-function communication should be named ui_struct_
+* Save As:
+
+  Program received signal SIGSEGV, Segmentation fault.
+  [Switching to Thread -1217402304 (LWP 7098)]
+  0xb795543c in mallopt () from /lib/tls/libc.so.6
+  (gdb) bt
+  #0  0xb795543c in mallopt () from /lib/tls/libc.so.6
+  #1  0xb7fd8d2c in ?? () from /usr/lib/libgtk-x11-2.0.so.0
+  #2  0x0823c4e8 in ?? ()
+  #3  0xb7fd8d2c in ?? () from /usr/lib/libgtk-x11-2.0.so.0
+  #4  0xbfffee18 in ?? ()
+  #5  0xb7dcb5c4 in gtk_file_chooser_set_current_name () from /usr/lib/libgtk-x11-2.0.so.0
+
+  Reproduction:
+  - Start empty listpatron
+  - Load list (testdata/Boeken.lip)
+  - Change sorting rule.
+  - Save as.

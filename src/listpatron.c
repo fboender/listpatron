@@ -34,59 +34,33 @@
 #include <gtk/gtk.h>
 #include <glib-object.h>
 
-#include "debug.h"
 #include "listpatron.h"
+
+/* Libs */
+#include "debug.h"
 #include "list.h"
+
+/* Data */
 #include "splash.h"
-#include "libgtkext.h"
+#include "menu_def.h"
 
-#define _DEBUG
+/* User interface */
+#include "ui_find.h"
+#include "ui_import.h"
+#include "ui_export.h"
+#include "ui_rulelist.h"
+#include "ui_sort.h"
 
-/****************************************************************************
- * Data initializer
- ****************************************************************************/
-static GtkItemFactoryEntry ui_menu_items[] = {
-	{ "/_File"                            , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/File/_New"                        , NULL , ui_menu_file_new_cb          , 0 , "<StockItem>", GTK_STOCK_NEW    },
-	{ "/File/_Open"                       , NULL , ui_menu_file_open_cb         , 0 , "<StockItem>", GTK_STOCK_OPEN   },
-	{ "/File/_Save"                       , NULL , ui_menu_file_save_cb         , 0 , "<StockItem>", GTK_STOCK_SAVE   },
-	{ "/File/Save _As"                    , NULL , ui_menu_file_save_as_cb      , 0 , "<Item>"                        },
-	{ "/File/_Import"                     , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/File/Import/_Character Separated" , NULL , ui_menu_file_import_csv_cb   , 0 , "<Item>"                        },
-	{ "/File/_Export"                     , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/File/Export/_Character Separated" , NULL , ui_menu_file_export_csv_cb   , 0 , "<Item>"                        },
-	{ "/File/Export/_Postscript"          , NULL , ui_menu_file_export_ps_cb    , 0 , "<Item>"                        },
-	{ "/File/Export/_Html"                , NULL , ui_menu_file_export_html_cb  , 0 , "<Item>"                        },
-	{ "/File/sep1"                        , NULL , NULL                         , 0 , "<Separator>"                   },
-	{ "/File/_Quit"                       , NULL , ui_menu_file_quit_cb         , 0 , "<StockItem>", GTK_STOCK_QUIT   },
-	{ "/_Edit"                            , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/Edit/Cu_t"                        , NULL , NULL                         , 0 , "<StockItem>", GTK_STOCK_CUT    },
-	{ "/Edit/_Copy"                       , NULL , NULL                         , 0 , "<StockItem>", GTK_STOCK_COPY   },
-	{ "/Edit/_Paste"                      , NULL , NULL                         , 0 , "<StockItem>", GTK_STOCK_PASTE  },
-	{ "/Edit/sep1"                        , NULL , NULL                         , 0 , "<Separator>"                   },
-	{ "/Edit/_Find"                       , NULL , ui_menu_edit_find_cb         , 0 , "<StockItem>", GTK_STOCK_FIND   },
-	{ "/_Column"                          , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/Column/_Add"                      , NULL , ui_menu_column_add_cb        , 0 , "<StockItem>", GTK_STOCK_ADD    },
-	{ "/Column/_Delete"                   , NULL , ui_menu_column_delete_cb     , 0 , "<StockItem>", GTK_STOCK_DELETE },
-	{ "/Column/_Rename"                   , NULL , ui_menu_column_rename_cb     , 0 , "<Item>"                        },
-	{ "/_Row"                             , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/Row/_Add"                         , NULL , ui_menu_row_add_cb           , 0 , "<StockItem>", GTK_STOCK_ADD    },
-	{ "/Row/_Delete"                      , NULL , ui_menu_row_delete_cb        , 0 , "<StockItem>", GTK_STOCK_DELETE },
-#ifdef _DEBUG
-	{ "/_Debug"                           , NULL , NULL                         , 0 , "<Branch>"                      },
-	{ "/Debug/_Add test data"             , NULL , ui_menu_debug_addtestdata_cb , 0 , "<Item>"                        },
-	{ "/Debug/Add test _rows"             , NULL , ui_menu_debug_addtestrows_cb , 0 , "<Item>"                        },
-#endif
-	{ "/_Help"                            , NULL , NULL                         , 0 , "<LastBranch>"                  },
-	{ "/_Help/About"                      , NULL , ui_menu_help_about_cb        , 0 , "<Item>"                        },
-};
-
-static gint ui_nmenu_items = sizeof(ui_menu_items) / sizeof(ui_menu_items[0]);
 GtkWidget *win_main;
 GtkWidget *lbl_listtitle;
 guint sb_context_id;
 GtkWidget *sb_status;
 GtkTreeView *treeview;
+int merge_id_sorts;
+
+/* Menu stuff (global because of dynamic menu's */
+GtkActionGroup *action_group;
+GtkUIManager *ui_manager;
 
 extern list_ *list;
 
@@ -96,9 +70,6 @@ int
 	opt_verbose,
 	opt_version;
 
-/****************************************************************************
- * Callbacks 
- ****************************************************************************/
 /* Tree and list */
 void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	GtkTreePath *path;
@@ -106,6 +77,7 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	char *path_str;
 	int col, row;
 
+	/* Update the statusbar */
 	gtk_tree_view_get_cursor(treeview, &path, &column);
 	if (path != NULL) {
 		path_str = gtk_tree_path_to_string(path);
@@ -122,29 +94,9 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	}
 }
 
-void ui_menu_file_new_cb(void) {
-	list_clear();
-	list = list_create();
-}
-
-/* File open */
-//void ui_file_open_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
-//	char *filename = NULL;
-//	int err_nr;
-//	
-//	filename = (char *)gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs));
-//	
-//	if ((err_nr = list_load(list, filename)) != 0) {
-//		switch (err_nr) {
-//			case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
-//			case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
-//			default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
-//		}
-//	} else {
-//		gtk_statusbar_msg("File '%s' loaded.", filename);
-//	}
-//}
-
+/****************************************************************************
+ * Random wrappers that should have their own files but don't
+ ****************************************************************************/
 int ui_file_load(char *filename) {
 	int err_nr;
 
@@ -169,6 +121,16 @@ int ui_file_load(char *filename) {
 	return(0);
 }
 
+/****************************************************************************
+ * Callbacks (Menu)
+ ****************************************************************************/
+void ui_menu_file_new_cb(void) {
+	list_clear();
+	list = list_create();
+	list_title_set("Untitled");
+	list->modified = FALSE; /* Overwrite mod flag setting by list_title_set */
+}
+
 void ui_menu_file_open_cb(void) {
 	GtkWidget *dia_file_open;
 
@@ -189,285 +151,34 @@ void ui_menu_file_open_cb(void) {
 	
 	if (gtk_dialog_run(GTK_DIALOG(dia_file_open)) == GTK_RESPONSE_ACCEPT) {
 		char *filename = NULL;
-		//int err_nr;
 
 		filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_open)));
 
 		ui_file_load(filename);
+		ui_create_menu_sortrules(list->sorts);
 
-//		if ((err_nr = list_load(list, filename)) != 0) {
-//			switch (err_nr) {
-//				case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
-//				case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
-//				case -3: gtk_error_dialog("Corrupt listpatron file '%s'.", filename); break;
-//				default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
-//			}
-//		} else {
-//			gtk_statusbar_msg("File '%s' loaded.", filename);
-//			if (list->filename != NULL) {
-//				free(list->filename);
-//			}
-//			list->filename = strdup(filename);
-//		}
-		
 		free(filename);
 	}
 
 	gtk_widget_destroy(dia_file_open);
 }
 
-/* File import */
-/* Unused */
-//void ui_file_import_csv_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
-//	char *filename = NULL;
-//	char *delimiter_string = NULL;
-//	int rows = -1;
-//	
-//	filename = (char *)gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)); /* FIXME: Should this be freed? */
-//	
-//	delimiter_string = gtk_input_dialog("Enter a single character which delimits the fields in the file", ",");
-//	if (delimiter_string != NULL) {
-//		if (list_import_csv(list, filename, ',') == -1) {
-//			gtk_error_dialog("Not a correct Comma Separated file '%s'", filename);
-//		} else {
-//			gtk_statusbar_msg("File %s imported. %i rows read.", filename, list->nr_of_rows, rows);
-//		}
-//
-//		free(delimiter_string);
-//	}
-//}
-
-void ui_file_import_delimiter_comma_cb(GtkWidget *radio, import_ *import) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
-		import->delimiter = ',';
-	}
-}
-
-void ui_file_import_delimiter_tab_cb(GtkWidget *radio, import_ *import) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
-		import->delimiter = '\t';
-	}
-}
-
 void ui_menu_file_import_csv_cb(void) {
-	GtkWidget *dia_file_import;
-	GtkWidget *vbox;
-	GtkWidget *radio_comma, *radio_tab;
-	import_ *import;
-
-	import = malloc(sizeof(import_));
-	import->delimiter = ',';
-
-	dia_file_import = gtk_file_chooser_dialog_new(
-			"Import character separated file",
-			GTK_WINDOW(win_main),
-			GTK_FILE_CHOOSER_ACTION_OPEN, 
-			NULL);
-	gtk_dialog_add_buttons(
-			GTK_DIALOG(dia_file_import),
-			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, 
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
-			NULL);
-	
-	/* Build options widget */
-	radio_comma = gtk_radio_button_new_with_mnemonic(NULL, "_Comma separated");
-	radio_tab = gtk_radio_button_new_with_mnemonic_from_widget(
-			GTK_RADIO_BUTTON(radio_comma),
-			"_Tab separated");
-	gtk_signal_connect(
-			GTK_OBJECT(radio_comma), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_file_import_delimiter_comma_cb),
-			import);
-	gtk_signal_connect(
-			GTK_OBJECT(radio_tab), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_file_import_delimiter_tab_cb),
-			import);
-			
-	vbox = gtk_vbox_new(FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), radio_comma, FALSE, FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), radio_tab, FALSE, FALSE, 3);
-
-	gtk_widget_show_all(vbox);
-
-	/* Prepare import dialog and show */
-	gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER(dia_file_import), vbox);
-
-	if (gtk_dialog_run(GTK_DIALOG(dia_file_import)) == GTK_RESPONSE_ACCEPT) {
-		list_clear();
-		list = list_create();
-		import->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_import)));
-		list_import_csv(list, import->filename, import->delimiter);
-		free(import->filename);
-	}
-
-	gtk_widget_destroy(dia_file_import);
-
-	free(import);
-}
-
-void ui_file_export_ps_portrait_cb(GtkWidget *radio, export_ *export) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
-		export->orientation = ORIENT_PORTRAIT;
-	}
-}
-
-void ui_file_export_ps_landscape_cb(GtkWidget *radio, export_ *export) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
-		export->orientation = ORIENT_LANDSCAPE;
-	}
-}
-
-void ui_file_export_delimiter_comma_cb(GtkWidget *radio, export_ *export) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
-		export->delimiter = ',';
-	}
-}
-
-void ui_file_export_delimiter_tab_cb(GtkWidget *radio, export_ *export) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
-		export->delimiter = '\t';
-	}
+	ui_import_csv();
 }
 
 void ui_menu_file_export_csv_cb(void) {
-	GtkWidget *dia_file_export;
-	GtkWidget *vbox;
-	GtkWidget *radio_comma, *radio_tab;
-	export_ *export;
-
-	export = malloc(sizeof(export_));
-	export->delimiter = ',';
-
-	dia_file_export = gtk_file_chooser_dialog_new(
-			"Export Character Separated file",
-			GTK_WINDOW(win_main),
-			GTK_FILE_CHOOSER_ACTION_SAVE, 
-			NULL);
-	gtk_dialog_add_buttons(
-			GTK_DIALOG(dia_file_export),
-			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
-			NULL);
-	
-	/* Build options widget */
-	radio_comma = gtk_radio_button_new_with_mnemonic(NULL, "_Comma");
-	radio_tab = gtk_radio_button_new_with_mnemonic_from_widget(
-			GTK_RADIO_BUTTON(radio_comma),
-			"_Tab");
-	gtk_signal_connect(
-			GTK_OBJECT(radio_comma), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_file_export_delimiter_comma_cb),
-			export);
-	gtk_signal_connect(
-			GTK_OBJECT(radio_tab), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_file_export_delimiter_tab_cb),
-			export);
-			
-	vbox = gtk_vbox_new(FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), radio_comma, FALSE, FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), radio_tab, FALSE, FALSE, 3);
-
-	gtk_widget_show_all(vbox);
-
-	/* Prepare import dialog and show */
-	gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER(dia_file_export), vbox);
-
-	if (gtk_dialog_run(GTK_DIALOG(dia_file_export)) == GTK_RESPONSE_ACCEPT) {
-		export->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_export)));
-		list_export_csv(list, export->filename, export->delimiter);
-		free(export->filename);
-	}
-
-	gtk_widget_destroy(dia_file_export);
-
-	free(export);
+	ui_export_csv();
 }
 
 void ui_menu_file_export_ps_cb(void) {
-	GtkWidget *dia_file_export;
-	GtkWidget *vbox;
-	GtkWidget *radio_landscape, *radio_portrait;
-	export_ *export;
-
-	export = malloc(sizeof(export_));
-	export->orientation = ORIENT_PORTRAIT;
-
-	dia_file_export = gtk_file_chooser_dialog_new(
-			"Export PostScript file",
-			GTK_WINDOW(win_main),
-			GTK_FILE_CHOOSER_ACTION_SAVE, 
-			NULL);
-	gtk_dialog_add_buttons(
-			GTK_DIALOG(dia_file_export),
-			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
-			NULL);
-	
-	/* Build options widget */
-	radio_portrait = gtk_radio_button_new_with_mnemonic(NULL, "_Portrait");
-	radio_landscape = gtk_radio_button_new_with_mnemonic_from_widget(
-			GTK_RADIO_BUTTON(radio_portrait),
-			"_Landscape");
-	gtk_signal_connect(
-			GTK_OBJECT(radio_portrait), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_file_export_ps_portrait_cb),
-			export);
-	gtk_signal_connect(
-			GTK_OBJECT(radio_landscape), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_file_export_ps_landscape_cb),
-			export);
-			
-	vbox = gtk_vbox_new(FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), radio_portrait, FALSE, FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), radio_landscape, FALSE, FALSE, 3);
-
-	gtk_widget_show_all(vbox);
-
-	/* Prepare import dialog and show */
-	gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER(dia_file_export), vbox);
-
-	if (gtk_dialog_run(GTK_DIALOG(dia_file_export)) == GTK_RESPONSE_ACCEPT) {
-		export->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_export)));
-		list_export_ps(list, export->filename, export->orientation);
-		free(export->filename);
-	}
-
-	gtk_widget_destroy(dia_file_export);
-
-	free(export);
+	ui_export_ps();
 }
 
 void ui_menu_file_export_html_cb(void) {
-	GtkWidget *dia_file_export;
-	char *filename;
-
-	dia_file_export = gtk_file_chooser_dialog_new(
-			"Export HTML file",
-			GTK_WINDOW(win_main),
-			GTK_FILE_CHOOSER_ACTION_SAVE, 
-			NULL);
-	gtk_dialog_add_buttons(
-			GTK_DIALOG(dia_file_export),
-			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, 
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
-			NULL);
-	
-	if (gtk_dialog_run(GTK_DIALOG(dia_file_export)) == GTK_RESPONSE_ACCEPT) {
-		filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_export)));
-		list_export_html(list, filename);
-		free(filename);
-	}
-
-	gtk_widget_destroy(dia_file_export);
+	ui_export_html();
 }
 
-/* File save */
 void ui_menu_file_save_cb(void) {
 	GtkWidget *dia_file_save;
 	int response;
@@ -516,7 +227,6 @@ void ui_menu_file_save_cb(void) {
 	}
 }
 
-/* File save as... */
 void ui_menu_file_save_as_cb(void) {
 		GtkWidget *dia_file_save;
 	int response;
@@ -571,108 +281,25 @@ void ui_menu_file_quit_cb(void) {
 	}
 }
 
-/* Find */
-void ui_find_find_cb(GtkWidget *ent_needle, find_ *find) {
-	char *needle = NULL;
-	int row, col;
-	GtkTreePath *occ_path = NULL;
-	GtkTreeViewColumn *occ_col = NULL;
-
-	needle = (char *)gtk_entry_get_text(GTK_ENTRY(ent_needle));
-
-	if (needle) {
-		int find_options = 0;
-
-		if (find->matchcase == 1) {
-			find_options = find_options | FIND_MATCHCASE;
-		}
-		if (find->matchfull == 1) {
-			find_options = find_options | FIND_MATCHFULL;
-		}
-
-		if (list_find(list, needle, find_options, &row, &col)) {
-			char *path_str = malloc(sizeof(char) * 10);
-
-			/* int Row -> path */
-			sprintf(path_str, "%i", row);
-			occ_path = gtk_tree_path_new_from_string(path_str);
-			/* int Col -> viewcolumn */
-			occ_col = gtk_tree_view_get_column(treeview, col);
-
-			gtk_tree_view_set_cursor(treeview, occ_path, occ_col, 0);
-			free (path_str);
-		} else {
-			gtk_error_dialog("No (more) matches found.");
-			gtk_statusbar_msg("No (more) matches found.");
-		}
-	}
-}
-
-void ui_find_toggle_matchcase_cb(GtkWidget *toggle, find_ *find) {
-	find->matchcase ^= 1;
-}
-
-void ui_find_toggle_matchfull_cb(GtkWidget *toggle, find_ *find) {
-	find->matchfull ^= 1;
-}
-
 void ui_menu_edit_find_cb(void) {
-	GtkWidget *dia_find;
-	GtkWidget *vbox;
-	gint result;
-	find_ *find = malloc(sizeof(find_));
-	GtkWidget *toggle_matchcase, *toggle_matchfull;
-	
-	if (list->liststore == NULL || treeview == NULL) {
-		gtk_error_dialog("No data in list yet");
-		return;
-	}
-
-	find->matchcase = 0;
-	find->matchfull = 0;
-
-	dia_find = gtk_dialog_new_with_buttons(
-			"Find",
-			NULL,
-			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-			GTK_STOCK_FIND, GTK_RESPONSE_ACCEPT,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
-			NULL);
-
-	find->ent_needle = gtk_entry_new();
-	g_signal_connect(find->ent_needle, "activate", (GCallback) ui_find_find_cb, find);
-
-	/* Build options widget */
-	toggle_matchcase = gtk_check_button_new_with_mnemonic("Case _sensitive");
-	toggle_matchfull = gtk_check_button_new_with_mnemonic("F_ull matches only");
-	gtk_signal_connect(
-			GTK_OBJECT(toggle_matchcase), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_find_toggle_matchcase_cb),
-			find);
-	gtk_signal_connect(
-			GTK_OBJECT(toggle_matchfull), 
-			"toggled",
-			GTK_SIGNAL_FUNC(ui_find_toggle_matchfull_cb),
-			find);
-			
-	vbox = gtk_vbox_new(FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), find->ent_needle, FALSE, FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), toggle_matchcase, FALSE, FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), toggle_matchfull, FALSE, FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dia_find)->vbox), GTK_WIDGET(vbox), FALSE, TRUE, 0);
-	
-	gtk_widget_show_all(dia_find);
-
-	while ((result = gtk_dialog_run(GTK_DIALOG(dia_find))) != GTK_RESPONSE_REJECT) {
-		ui_find_find_cb(find->ent_needle, find);
-	}
-
-	gtk_widget_destroy(dia_find);
-
+	ui_find();
 }
 
-/* Column menu options */
+void ui_menu_sort_rules_cb(void) {
+	ui_rulelist(
+			"Edit sorting rules", 
+			"Sorting rule",
+			list->sorts,
+			ui_sort_new,
+			ui_sort_edit,
+			ui_sort_delete);
+	ui_create_menu_sortrules(list->sorts);
+}
+
+void ui_menu_sort_edit_cb(void) {
+	ui_sort_rule_edit(NULL);
+}
+
 void ui_menu_column_add_cb(void) {
 	char *column_name = NULL;
 	
@@ -724,7 +351,6 @@ void ui_menu_column_delete_cb(void) {
 	list_column_delete(list, column);
 }
 
-/* Row menu options */
 void ui_menu_row_add_cb(void) {
 	list_row_add_empty(list);
 }
@@ -760,7 +386,6 @@ void ui_menu_row_delete_cb(void) {
 	g_list_free(row_refs);
 }
 
-/* Debugging menu items */
 void ui_menu_debug_addtestdata_cb(void) {
 	int col, row;
 	char *col_headers[] = {
@@ -881,21 +506,6 @@ void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new
 /****************************************************************************
  * User interface creation functions
  ****************************************************************************/
-GtkWidget *ui_create_menubar(GtkWidget *window) {
-	GtkItemFactory *item_factory;
-	GtkAccelGroup *accel_group;
-	
-	accel_group = gtk_accel_group_new();
-	
-	item_factory = gtk_item_factory_new(GTK_TYPE_MENU_BAR, "<main>", accel_group);
-	
-	gtk_item_factory_create_items(item_factory, ui_nmenu_items, ui_menu_items, NULL);
-	
-	gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);
-	
-	return gtk_item_factory_get_widget(item_factory, "<main>");
-}
-
 GtkWidget *ui_create_statusbar(GtkWidget *window) {
 
 	sb_status = gtk_statusbar_new();
@@ -904,24 +514,23 @@ GtkWidget *ui_create_statusbar(GtkWidget *window) {
 
 	return (sb_status);
 }
+
 void dialog_about_btn_ok_cb(GtkWidget *widget, GtkWidget *win) {
 	gtk_widget_destroy(win);
 }
-
 
 GtkWidget *ui_create_tree_view(void) {
 	GtkTreeSelection *treeselection;
 
 	treeview = GTK_TREE_VIEW(gtk_tree_view_new());
-	gtk_signal_connect(
-			GTK_OBJECT(treeview),
+	g_signal_connect(
+			treeview,
 			"cursor-changed",
 			G_CALLBACK(ui_treeview_cursor_changed_cb),
 			NULL);
 
 	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(treeview), 1);
 	treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
-//	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_SINGLE);
 	gtk_tree_selection_set_mode(treeselection, GTK_SELECTION_MULTIPLE);
 
 	return (GTK_WIDGET(treeview));
@@ -956,8 +565,8 @@ void ui_menu_help_about_cb(void) {
 	label = gtk_label_new("\nListPatron v%%VERSION\n\nCopyright, 2004, by Ferry Boender\n\n%%HOMEPAGE\nReleased under the GPL\n<%%EMAIL>");
 	vbox = gtk_vbox_new(FALSE, 0);
 	
-	gtk_signal_connect(
-			GTK_OBJECT(btn_ok),
+	g_signal_connect(
+			btn_ok,
 			"clicked",
 			GTK_SIGNAL_FUNC(dialog_about_btn_ok_cb),
 			win);
@@ -1076,6 +685,139 @@ void handle_cmdline(int argc, char *argv[]) {
 	}
 }
 
+void ui_menu_sort_rule_activate_cb(GtkAction *action, char *sort_rule) {
+	sort_ *sort;
+	GList *columns = NULL;
+	GList *col_iter = NULL;
+
+	/* Set the selected sort as the active sort */
+	sort = list_sort_getrule(sort_rule);
+	list->sort_active = sort->columns;
+	
+	/* Override default search func with our own */
+	gtk_tree_sortable_set_default_sort_func(
+			GTK_TREE_SORTABLE(list->liststore), 
+			list_sort_func,
+			NULL,
+			NULL);
+	gtk_tree_sortable_set_sort_column_id(
+			GTK_TREE_SORTABLE(list->liststore),
+			GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID,
+			GTK_SORT_ASCENDING /* FIXME: Does it matter? */);
+
+	/* Set column sort direction arrow indicators */
+	columns = gtk_tree_view_get_columns(treeview);
+	col_iter = columns;
+
+	while (col_iter != NULL) {
+		int col_nr;
+		int col_sort_dir;
+		sort_col_ *sort_col;
+		int i;
+		
+		col_nr = GPOINTER_TO_UINT(
+				g_object_get_data(G_OBJECT(col_iter->data), "col_nr")
+		);
+		
+		/* Find the sort_order for this column */
+		for (i = 0; i < sort->columns->len; i++) {
+			sort_col = g_array_index(
+					sort->columns,
+					sort_col_ *,
+					i);
+			if (sort_col->col_nr == col_nr) {
+				break;
+			}
+		}
+		
+		col_sort_dir = sort_col->sort_order;
+
+		gtk_tree_view_column_set_sort_indicator(
+				GTK_TREE_VIEW_COLUMN(col_iter->data),
+				TRUE);
+		gtk_tree_view_column_set_sort_order(
+				GTK_TREE_VIEW_COLUMN(col_iter->data),
+				col_sort_dir);
+		
+		
+		col_iter = col_iter->next;
+	}
+
+}
+
+void ui_create_menu_sortrules(GArray *rules) {
+	int i;
+
+	assert(rules != NULL);
+	
+	/* Remove old sorting rules */
+	gtk_ui_manager_remove_ui(ui_manager, merge_id_sorts);
+
+	merge_id_sorts = gtk_ui_manager_new_merge_id(ui_manager);
+
+	/* Populate the sort rules list menu with rules */
+	for (i = 0; i < rules->len; i++) {
+		rule_ *rule;
+		GtkAction *action;
+		char *action_name = malloc(sizeof(char) * (8 + 20));
+
+		rule = g_array_index(rules, rule_ *, i);
+		
+		sprintf(action_name, "SortRule%i", i);
+
+		action = gtk_action_new(
+				action_name,
+				rule->name,
+				"Sort by this rule",
+				NULL);
+		g_signal_connect(
+				action,
+				"activate",
+				GTK_SIGNAL_FUNC(ui_menu_sort_rule_activate_cb),
+				rule->name);
+
+		gtk_action_group_add_action(
+				action_group,
+				action);
+
+		gtk_ui_manager_add_ui(
+				ui_manager,
+				merge_id_sorts,
+				"/MainMenu/DataMenu/SortMenu",
+				action_name,
+				action_name,
+				GTK_UI_MANAGER_MENUITEM,
+				FALSE);
+	}
+}
+
+GtkWidget *ui_create_menu(void) {
+	GtkWidget *menubar;
+	GError *error;
+	GtkAccelGroup *accel_group;
+
+	action_group = gtk_action_group_new ("MenuActions");
+	gtk_action_group_add_actions (action_group, entries, G_N_ELEMENTS (entries), win_main);
+
+	ui_manager = gtk_ui_manager_new ();
+	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
+
+	accel_group = gtk_ui_manager_get_accel_group (ui_manager);
+	gtk_window_add_accel_group (GTK_WINDOW (win_main), accel_group);
+
+	error = NULL;
+	if (!gtk_ui_manager_add_ui_from_string (ui_manager, ui_description, -1, &error))
+	  {
+		g_message ("building menus failed: %s", error->message);
+		g_error_free (error);
+		exit (EXIT_FAILURE);
+	  }
+
+	menubar = gtk_ui_manager_get_widget(ui_manager, "/MainMenu");
+	return (menubar);
+}
+
+
 /****************************************************************************
  * Main
  ****************************************************************************/
@@ -1098,7 +840,7 @@ int main(int argc, char *argv[]) {
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(win_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(win_scroll), ui_create_tree_view());
 	
-	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menubar(win_main)), FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menu()),  FALSE,TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_listtitle()), FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(win_scroll), TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox_main), GTK_WIDGET(ui_create_statusbar(win_main)), FALSE, TRUE, 0);
@@ -1108,11 +850,13 @@ int main(int argc, char *argv[]) {
 	/* FIXME: Error dialogs occuring during handle_cmdline aren't shown */
 	handle_cmdline(argc, argv);
 
+	ui_create_menu_sortrules(list->sorts);
+
 	if (!opt_batch) {
 		gtk_widget_show_all(win_main);
-	
 		gtk_main();
 	}
-	
+
 	return (0);
 }
+

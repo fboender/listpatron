@@ -1,0 +1,41 @@
+The road to v1.0.
+
+The following releases will contain the following features.
+
+0.1: Sorting
+0.2: Filters / Field types (int/bool/str/etc)
+0.3: Reports
+0.4: Printing / More imports & exports
+0.5: Additional features / I18n / Additional views?
+0.6: Gnome-ifying / ??
+0.7: Plugins???
+0.8: ??? (large feature freeze)
+1.0pre1: Bugfixing / Small additions (small feature freeze)
+1.0pre2: bugfixing.
+1.0
+
+Things which would be cool to implement:
+- SQL import / Export (This will probably be included in v0.4)
+- Direct SQL connection (reading/writing data to DB instead
+  of XML)
+- Group-editing of lists over networks (needs locking, etc)
+- Web frontend
+- Ncurses frontend
+- Plugins
+- Additional Column based view instead of row based (as with MS Access):
+    
+    row-based: 
+       
+       titel      | author   | rating
+       ------------------------------
+       Beermoney  | Onkey, D | 5
+       The Ghost  | Foo, B   | 3
+
+    column-based:
+
+       title  : [ Beermoney ]
+       author : [ Onkey, D  ]
+       rating : [ 5         ]
+
+
+

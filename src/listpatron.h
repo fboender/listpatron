@@ -22,6 +22,11 @@ void gtk_statusbar_msg(char *fmt, ...);
 /* Debugging functions */
 void debug_msg(int dbg_type, char *file, int line, char *fmt, ...);
 
+//void ui_sort_ok_cb(GtkListStore *ls_sort, GtkEntry *ent_name);
+//gint ui_sort (void);
+void ui_menu_sort_rules_cb(void);
+void ui_menu_sort_edit_cb(void);
+
 /* Menu callback functions */
 void ui_menu_file_new_cb(void);
 void ui_menu_file_import_csv_cb(void);
@@ -45,8 +50,11 @@ void ui_menu_help_about_cb(void);
 /* Various Callback functions */
 void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data);
 void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
+void ui_treeview_column_clicked_cb(GtkTreeViewColumn *col, gpointer *data);
+void ui_treeview_columns_changed_cb(GtkTreeView *treeview, gpointer *data);
 
 /* User interface creation functions */
+void ui_create_menu_sortrules(GArray *rules);
 GtkWidget *ui_create_menubar(GtkWidget *window);
 
 #endif

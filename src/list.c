@@ -9,6 +9,11 @@
  * 
  ****************************************************************************/
 
+/* TODO: 
+ *  - List uses column numbers for identification of columns; however, this
+ *    causes many problems with three-tier (separation of data and view) and
+ *    removal of columns 
+ */
 #include <string.h>
 #include <assert.h>
 
@@ -32,6 +37,169 @@ extern int opt_batch;
 extern int opt_verbose;
 extern int opt_version;
 
+void list_sort_dump_rules(void) {
+	int i;
+	int i_col;
+
+	for (i = 0; i < list->sorts->len; i++) {
+		sort_ *sort;
+
+		sort = g_array_index(list->sorts, sort_ *, i);
+		printf("sort->name=\"%s\"\n", sort->name);
+
+		for (i_col = 0; i_col < sort->columns->len; i_col++) {
+			sort_col_ *sort_col = g_array_index(sort->columns, sort_col_ *, i_col);
+			printf("\tcolumns[%i]-> col_nr=\"%i\", sort_order=\"%i\", col_name=\"%s\", \n", 
+					i_col, 
+					sort_col->col_nr,
+					sort_col->sort_order,
+					sort_col->col_name);
+		}
+	}
+	printf("------------------------------------------------\n");
+}
+
+sort_ *list_sort_getrule(char *name) {
+	int i;
+
+	assert(name != NULL);
+
+	for (i = 0; i < list->sorts->len; i++) {
+		sort_ *sort;
+
+		sort = g_array_index(list->sorts, sort_ *, i); 
+		
+		if (strcmp(sort->name, name) == 0) {
+			return(sort);
+		}
+	}
+
+	return(NULL);
+}
+
+void list_sort_add(char *old_name, char *name, GArray *columns) {
+	int i;
+	sort_ *sort = NULL;
+
+	assert(name != NULL);
+	assert(columns != NULL);
+	
+	if (old_name != NULL) {
+		/* Find old sorting rule and deep free it */
+		for (i = 0; i < list->sorts->len; i++) {
+			sort_ *dup_sort;
+
+			dup_sort = g_array_index(list->sorts, sort_ *, i);
+			if (strcmp(dup_sort->name, old_name) == 0) {
+				int i_col;
+				
+				free(dup_sort->name);
+				
+				for (i_col = 0; i_col < dup_sort->columns->len; i_col++) {
+					sort_col_ *sort_col = g_array_index(dup_sort->columns, sort_col_ *, i_col);
+
+					free(sort_col->col_name);
+					free(sort_col);
+				}
+				g_array_free(dup_sort->columns, TRUE);
+				sort = dup_sort;
+			}
+		}
+	}
+	
+	if (sort == NULL) {
+		/* New rule or old rule not found */
+		sort = malloc(sizeof(sort_));
+		g_array_append_val(list->sorts, sort);
+	}
+
+	sort->name = strdup(name);
+	sort->columns = columns;
+}
+
+void list_sort_remove(char *name) {
+	int i;
+
+	for (i = 0; i < list->sorts->len; i++) {
+		sort_ *sort;
+
+		sort = g_array_index(list->sorts, sort_ *, i);
+		if (strcmp(sort->name, name) == 0) {
+			free(sort->name);
+			g_array_remove_index(list->sorts, i);
+			break;
+		}
+	}
+}
+
+/* FIXME: This routine can and should be optimized. */
+gint list_sort_func (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer user_data) {
+	char *row_data_a;
+	char *row_data_b;
+	int i;
+
+	for (i = 0; i < list->sort_active->len; i++) {
+		sort_col_ *sort_col;
+		int cmp_rslt;
+		
+		sort_col = g_array_index(list->sort_active, sort_col_ *, i);
+		
+		gtk_tree_model_get(GTK_TREE_MODEL(list->liststore), a, sort_col->col_nr, &row_data_a, -1);
+		gtk_tree_model_get(GTK_TREE_MODEL(list->liststore), b, sort_col->col_nr, &row_data_b, -1);
+		
+		/* On row insert the row_data might be NULL. Perhaps the insert
+		 * signal is fired before the data is in the list?
+		 *
+		 * It seems this only happens when inserting an empty row. Perhaps
+		 * list_row_add_empty() is at fault? */
+		if (row_data_a == NULL || row_data_b == NULL) {
+			return(0);
+		}
+
+		if ((cmp_rslt = strcmp(row_data_a, row_data_b)) != 0) {
+			if (sort_col->sort_order == GTK_SORT_ASCENDING) {
+				return(cmp_rslt);
+			} else {
+				return(cmp_rslt > 0 ? -1 : 1);
+			}
+		}
+	}
+
+	return (0);
+}
+
+/* Remove a column from ALL sorting rules */
+void list_sorts_remove_column(int col_nr) {
+	int i;
+
+	for (i = 0; i < list->sorts->len; i++) {
+		sort_ *sort;
+		int j;
+		int col_nr_remove = -1;
+		
+		sort = g_array_index(list->sorts, sort_ *, i);
+
+		for (j = 0; j < sort->columns->len; j++) {
+			sort_col_ *sort_col;
+
+			sort_col = g_array_index(sort->columns, sort_col_ *, j);
+
+			if (sort_col->col_nr == col_nr) {
+				col_nr_remove = j;
+			}
+
+			/* Shift columns to compensate for removed col */
+			if (sort_col->col_nr > col_nr && col_nr_remove != -1) {
+				sort_col->col_nr--;
+			}
+		}
+
+		if (col_nr_remove != -1) {
+			g_array_remove_index(sort->columns, col_nr_remove);
+		}
+	}
+}
+
 void list_column_add(list_ *list, char *title) {
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *col;
@@ -49,6 +217,7 @@ void list_column_add(list_ *list, char *title) {
 			"text", list->nr_of_cols,
 			NULL);
 	g_object_set_data(G_OBJECT(col), "col_nr", GUINT_TO_POINTER(list->nr_of_cols));
+
 	title_mem = strdup(title); /* FIXME: unfreed */
 	g_array_append_val(list->columns, title_mem);
 
@@ -57,6 +226,7 @@ void list_column_add(list_ *list, char *title) {
 
 	gtk_tree_view_column_set_resizable(GTK_TREE_VIEW_COLUMN(col), TRUE);
 	gtk_tree_view_column_set_reorderable(GTK_TREE_VIEW_COLUMN(col), TRUE);
+	gtk_tree_view_column_set_clickable(GTK_TREE_VIEW_COLUMN(col), TRUE);
 	gtk_tree_view_column_set_sort_column_id(GTK_TREE_VIEW_COLUMN(col), list->nr_of_cols);
 
 	gtk_tree_view_append_column(treeview, col);
@@ -74,6 +244,7 @@ void list_column_add(list_ *list, char *title) {
 		types[i] = G_TYPE_STRING;
 	}
 	list->liststore = gtk_list_store_newv(list->nr_of_cols + 1, types);
+
 	free(types);
 
 	/* Copy data from previous liststore (if existed) and clean up old store */
@@ -140,6 +311,7 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 
 			col_renderers = gtk_tree_view_column_get_cell_renderers(column_iter->data);
 			gtk_tree_view_column_set_attributes(column_iter->data, col_renderers->data, "text", col_nr - 1, NULL);
+			gtk_tree_view_column_set_clickable(GTK_TREE_VIEW_COLUMN(column_iter->data), TRUE);
 			gtk_tree_view_column_set_sort_column_id(column_iter->data, col_nr - 1);
 				
 			g_object_set_data(G_OBJECT(column_iter->data), "col_nr", GUINT_TO_POINTER(col_nr -1));
@@ -201,6 +373,9 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 	}
 
 	list->nr_of_cols--;
+
+	list_sorts_remove_column(liststore_remove_col_nr);
+		
 	list->modified = TRUE;
 
 }
@@ -294,6 +469,7 @@ void list_row_delete(list_ *list, GList *row_refs) {
 		iter = iter->next;
 	}
 
+	list->modified = TRUE;
 }
 
 void list_title_set(char *title) {
@@ -325,18 +501,22 @@ list_ *list_create(void) {
 	list_ *list = NULL;
 	list = malloc(sizeof(list_)); /* FIXME: Not freed */
 
-	list->columns     = g_array_new(FALSE, FALSE, sizeof(char*));
-	list->version     = strdup("0.1");      /* FIXME: Not freed */
-	list->title       = strdup("Untitled");
-	list->author      = strdup("");         /* FIXME: Not freed */
-	list->description = strdup("");         /* FIXME: Not freed */
-	list->keywords    = strdup("");         /* FIXME: Not freed */
-	list->filename    = NULL;
-	list->liststore   = NULL;
-	list->nr_of_cols  = 0;
-	list->nr_of_rows  = 0;
+	list->columns      = g_array_new(FALSE, FALSE, sizeof(char*));
+	list->version      = strdup("0.1");      /* FIXME: Not freed */
+	list->title        = strdup("Untitled");
+	list->author       = strdup("");         /* FIXME: Not freed */
+	list->description  = strdup("");         /* FIXME: Not freed */
+	list->keywords     = strdup("");         /* FIXME: Not freed */
+	list->filename     = NULL;
+	list->liststore    = NULL;
+	list->nr_of_cols   = 0;
+	list->nr_of_rows   = 0;
+	list->sort_active  = g_array_new(FALSE, FALSE, sizeof(sort_col_ *));
+	list->sorts        = g_array_new(FALSE, FALSE, sizeof(sort_ *));
 	list->last_occ_row = -1;
 	list->last_occ_col = -1;
+	list->sort_single.col_name = NULL;
+	list->sort_single.col_nr = 0;
 
 	list->modified = FALSE;
 
@@ -374,8 +554,6 @@ void list_clear(void) {
 
 		free(list);
 		list = NULL; /* FIXME: Does this reference the local or global var? */
-	} else {
-		gtk_statusbar_msg("It's really empty. Don't worry"); /* FIXME: Doesn't belong here */
 	}
 }
 
@@ -656,21 +834,64 @@ int list_export_html(list_ *list, char *filename) {
 }
 
 int list_load_filters(list_ *list, xmlNodeSetPtr node_filters) {
-	if (opt_verbose) {
-		printf("Filters are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
-	}
+	/* TODO: Implement */
 	return (0);
 }
-int list_load_sorts(list_ *list, xmlNodeSetPtr node_sorts) {
-	if (opt_verbose) {
-		printf("Sorts are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+
+int list_load_sorts(list_ *list, xmlNodeSetPtr nodeset_sorts) {
+	int i;
+	xmlNodePtr node_iter;
+	
+	for (i = 0; i < nodeset_sorts->nodeNr; i++) {
+		char *sort_name = NULL;
+		GArray *sort_cols;
+
+		node_iter = nodeset_sorts->nodeTab[i]->children; /* sorts/sort* */
+	
+		while (node_iter != NULL) {
+			/* sortname */
+			if (strcmp(node_iter->name, "sortname") == 0 && node_iter->children != NULL) {
+				sort_name = node_iter->children->content;
+			}
+			/* sortcolumns */
+			if (strcmp(node_iter->name, "sortcolumns") == 0) {
+				xmlNodePtr node_sort_iter;
+
+				sort_cols = g_array_new(FALSE, FALSE, sizeof(sort_col_ *));
+				
+				node_sort_iter = node_iter->children;
+				while (node_sort_iter != NULL) {
+					if (node_sort_iter->type == XML_ELEMENT_NODE && node_sort_iter->children != NULL) {
+						sort_col_ *sort_col = malloc(sizeof(sort_col_));
+						char *col_nr_str = NULL;
+
+						sort_col->col_name = strdup(node_sort_iter->children->content);
+						if (strcmp(xmlGetProp(node_sort_iter, "sortdirection"), "asc") == 0) {
+							sort_col->sort_order = 0;
+						} else {
+							sort_col->sort_order = 1;
+						}
+						
+						col_nr_str = xmlGetProp(node_sort_iter, "sortposition");
+						sort_col->col_nr = atoi(col_nr_str);
+
+						g_array_append_val(sort_cols, sort_col);
+					}
+					node_sort_iter = node_sort_iter->next; /* Next <columnname> */
+				}
+
+			}
+
+			node_iter = node_iter->next; /* Next element in sorts/sort/ */
+		}
+		list_sort_add(NULL, sort_name, sort_cols);
 	}
+
 	return (0);
 }
+
 int list_load_reports(list_ *list, xmlNodeSetPtr node_reports) {
-	if (opt_verbose) {
-		printf("Reports are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
-	}
+	/* TODO: Implement */
 	return (0);
 }
 
@@ -807,6 +1028,47 @@ int list_load(list_ *list, char *filename) {
 	}
 }
 
+int list_save_sorts(list_ *list, xmlNodePtr node_sorts) {
+	int i;
+
+	for (i = 0; i < list->sorts->len; i++) {
+		int i_col;
+		sort_ *sort = NULL;
+		xmlNodePtr 
+			node_sort,
+			node_sortcolumns;
+			
+		sort = g_array_index(list->sorts, sort_ *, i);
+		
+		node_sort = xmlNewChild(node_sorts, NULL, (const xmlChar *)"sort", NULL);
+		xml_add_element_content(node_sort, "sortname", "%s", sort->name);
+		node_sortcolumns = xmlNewChild(node_sort, NULL, (const xmlChar *)"sortcolumns", NULL);
+
+		for (i_col = 0; i_col < sort->columns->len; i_col++) {
+			char *sort_dir_str[] = {"asc", "desc"};
+			sort_col_ *sort_col;
+			int sort_dir;
+			gchar *column_name;
+			char *col_nr = malloc(sizeof(char) * 8);
+			xmlNodePtr node;
+
+			sort_col = g_array_index(sort->columns, sort_col_ *, i_col);
+
+			column_name = g_array_index(list->columns, gchar *, sort_col->col_nr);
+			sort_dir = sort_col->sort_order; /* FIXME: Sometimes sort_dir, sort_order etc. Fix everywhere. */
+			sprintf(col_nr, "%i", sort_col->col_nr);
+
+			node = xml_add_element_content(node_sortcolumns, "columnname", "%s", column_name);
+			xmlNewProp(node, "sortdirection", sort_dir_str[sort_dir]); /* FIXME: DOesn't this need tree.h? */
+			xmlNewProp(node, "sortposition", col_nr); 
+
+			free (col_nr);
+		}
+	}
+
+	return(0);
+}
+
 int list_save(list_ *list, char *filename) {
 	xmlDocPtr doc;
 	xmlNodePtr 
@@ -816,6 +1078,7 @@ int list_save(list_ *list, char *filename) {
 		node_window,
 		node_position,
 		node_dimensions,
+		node_sorts,
 		node_header,
 		node_rows,
 		node_row;
@@ -857,18 +1120,20 @@ int list_save(list_ *list, char *filename) {
 	xml_add_element_content(node_dimensions, "height", "%i", dim_height);
 	
 	/* Save filters */
-	/* NOT IMPLEMENTED YET */
+	/* TODO: Implement */
 
 	/* Save sorts */
-	/* NOT IMPLEMENTED YET */
-
+	node_sorts = xmlNewChild(node_root, NULL, (const xmlChar *)"sorts", NULL);
+	list_save_sorts(list, node_sorts);
+	
 	/* Save reports */
-	/* NOT IMPLEMENTED YET */
+	/* TODO: Implement */
 
 	/* Save column header information <header> */
 	node_header = xmlNewChild(node_root, NULL, (const xmlChar *)"header", NULL);
 	
 	debug_msg(DBG_VERBOSE, __FILE__, __LINE__, "%s", "Column sequence:\n");
+	/* FIXME: Redundant: isn't used? */
 	for (i = 0; i < list->nr_of_cols; i++) {
 		GtkTreeViewColumn* col;
 		col = gtk_tree_view_get_column(treeview, i);

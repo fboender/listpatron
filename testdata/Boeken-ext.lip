@@ -1,0 +1,2214 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE list SYSTEM "data/listpatron.dtd">
+<list>
+  <info>
+    <version>0.1</version>
+    <title>Boeken</title>
+    <author></author>
+    <description></description>
+    <keywords></keywords>
+  </info>
+  <state>
+    <window>
+      <position>
+        <x>272</x>
+        <y>193</y>
+      </position>
+      <dimensions>
+        <width>552</width>
+        <height>403</height>
+      </dimensions>
+    </window>
+  </state>
+  <sorts>
+    <sort>
+      <sortname>RatingAuteur</sortname>
+      <sortcolumns>
+        <columnname sortdirection="asc" sortposition="5">Rating</columnname>
+        <columnname sortdirection="asc" sortposition="2">Auteur</columnname>
+        <columnname sortdirection="asc" sortposition="0">Genre</columnname>
+        <columnname sortdirection="asc" sortposition="1">Titel</columnname>
+        <columnname sortdirection="asc" sortposition="3">Orig. Title</columnname>
+        <columnname sortdirection="asc" sortposition="4">Taal</columnname>
+        <columnname sortdirection="asc" sortposition="6">Verzamel</columnname>
+        <columnname sortdirection="asc" sortposition="7">Type</columnname>
+        <columnname sortdirection="asc" sortposition="8">Gelezen</columnname>
+      </sortcolumns>
+    </sort>
+    <sort>
+      <sortname>Rating(D)Auteur</sortname>
+      <sortcolumns>
+        <columnname sortdirection="desc" sortposition="5">Rating</columnname>
+        <columnname sortdirection="asc" sortposition="2">Auteur</columnname>
+        <columnname sortdirection="asc" sortposition="0">Genre</columnname>
+        <columnname sortdirection="asc" sortposition="1">Titel</columnname>
+        <columnname sortdirection="asc" sortposition="3">Orig. Title</columnname>
+        <columnname sortdirection="asc" sortposition="4">Taal</columnname>
+        <columnname sortdirection="asc" sortposition="6">Verzamel</columnname>
+        <columnname sortdirection="asc" sortposition="7">Type</columnname>
+        <columnname sortdirection="asc" sortposition="8">Gelezen</columnname>
+      </sortcolumns>
+    </sort>
+    <sort>
+      <sortname>TaalTitel</sortname>
+      <sortcolumns>
+        <columnname sortdirection="asc" sortposition="4">Taal</columnname>
+        <columnname sortdirection="asc" sortposition="1">Titel</columnname>
+        <columnname sortdirection="asc" sortposition="0">Genre</columnname>
+        <columnname sortdirection="asc" sortposition="2">Auteur</columnname>
+        <columnname sortdirection="asc" sortposition="3">Orig. Title</columnname>
+        <columnname sortdirection="asc" sortposition="5">Rating</columnname>
+        <columnname sortdirection="asc" sortposition="6">Verzamel</columnname>
+        <columnname sortdirection="asc" sortposition="7">Type</columnname>
+        <columnname sortdirection="asc" sortposition="8">Gelezen</columnname>
+      </sortcolumns>
+    </sort>
+  </sorts>
+  <header>
+    <columnname>Genre</columnname>
+    <columnname>Titel</columnname>
+    <columnname>Auteur</columnname>
+    <columnname>Orig. Title</columnname>
+    <columnname>Taal</columnname>
+    <columnname>Rating</columnname>
+    <columnname>Verzamel</columnname>
+    <columnname>Type</columnname>
+    <columnname>Gelezen</columnname>
+  </header>
+  <rows>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Kleine science fiction omnibus 1</column>
+      <column></column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Kleine Science fiction omnibus 1</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Writers of the future</column>
+      <column></column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Shangri-La</column>
+      <column></column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Alfa Vier</column>
+      <column></column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Alfa Vier</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Griezel Omnibus - Het verschrikkelijke geheim</column>
+      <column></column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Advocaten van de duivel</column>
+      <column></column>
+      <column>Legal Briefs</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Het uur van de weerwolf</column>
+      <column></column>
+      <column></column>
+      <column>NL</column>
+      <column>***</column>
+      <column>Het uur van de weerwolf</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Mannen van staal</column>
+      <column></column>
+      <column>Human Machines</column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Mannen van staal</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>De weg naar Nirwana</column>
+      <column></column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column>De weg naar Nirwana</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De meest fantastische SF verhalen van Meulenhoff</column>
+      <column></column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column>De meest fantastische SF verhalen van Meulenhoff</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Misdaad</column>
+      <column>Een dode is genoeg</column>
+      <column>-Ky</column>
+      <column>Es reicht doch, wenn nur einer stirbt</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Hitchhickers Guide to the Galaxy</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Detective / Humour</column>
+      <column>The Long Dark Tea-time of the soul</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>****</column>
+      <column>The Dirk Gently Omnibus</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Restaurant at the End of the Universe</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Mostly Harmless</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Detective / Humour</column>
+      <column>Dirk Gently Holistic Detective Agency</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Dirk Gently Onnibus</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Life, The Universe and Everything</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Young Zaphod Plays it Safe</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>***</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Verhaal</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Omnibus</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Grotendeels ongevaarlijk</column>
+      <column>Adams, Douglas</column>
+      <column>Mostly Harmless</column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>So Long, and Thanks for All the Fish</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Ultimate Hitchhickers Guide To the Galaxy</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Detective / Humour</column>
+      <column>The Dirk Gently Omnibus</column>
+      <column>Adams, Douglas</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Dirk Gently Omnibus</column>
+      <column>Omnibus</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Dood volgens Computer</column>
+      <column>Allen, Johannes</column>
+      <column>Data for din dod</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Vlaag van verstand</column>
+      <column>Anderson, Poul</column>
+      <column>Brainwave</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Het gebroken zwaard</column>
+      <column>Anderson, Poul</column>
+      <column>The Broken Sword</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Van de aarde verbannen</column>
+      <column>Anderson, Poul</column>
+      <column>Orbit Unlimited / Geen plaats meer op aarde</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Vlaag van verstand</column>
+      <column>Anderson, Poul</column>
+      <column>Brainwave</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Naked Sun</column>
+      <column>Asimov, Isaac</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>Asimov</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Asimov</column>
+      <column>Asimov, Isaac</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>Asimov</column>
+      <column>Omnibus</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Foundation and Empire</column>
+      <column>Asimov, Isaac</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>Asimov</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De Tweede Foundation</column>
+      <column>Asimov, Isaac</column>
+      <column>Second Foundation</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De Tweede Foundation</column>
+      <column>Asimov, Isaac</column>
+      <column>Second Foundation</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Second Foundation</column>
+      <column>Asimov, Isaac</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>Asimov</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>I, Robot</column>
+      <column>Asimov, Isaac</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>Asimov</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Foundation</column>
+      <column>Asimov, Isaac</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>Asimov</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Stars, Like Dus</column>
+      <column>Asimov, Isaac</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>Asimov</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De Regelaars</column>
+      <column>Bachman, Richard</column>
+      <column>The Regulators</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Razernij</column>
+      <column>Bachman, Richard</column>
+      <column>The Rage</column>
+      <column>NL</column>
+      <column></column>
+      <column>4 x Stephen King</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Werk in uitvoering</column>
+      <column>Bachman, Richard</column>
+      <column>Roadwork</column>
+      <column>NL</column>
+      <column></column>
+      <column>4 x Stephen King</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Vlucht naar de top</column>
+      <column>Bachman, Richard</column>
+      <column>The Running Man</column>
+      <column>NL</column>
+      <column></column>
+      <column>4 x Stephen King</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De Marathon</column>
+      <column>Bachman, Richard</column>
+      <column>The Long Walk</column>
+      <column>NL</column>
+      <column></column>
+      <column>4 x Stephen King</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>De legpuzzel spion</column>
+      <column>Bennet, Dorothea</column>
+      <column>The Jigsaw man</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Fahrenheit 451</column>
+      <column>Bradbury, Ray</column>
+      <column></column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Aarde</column>
+      <column>Brin, David</column>
+      <column>Earth</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Het gedoemde dorp</column>
+      <column>Bruss, B.R.</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Zangmeester</column>
+      <column>Card, Orson Scott</column>
+      <column>Songmaste</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Children of the Mind</column>
+      <column>Card, Orson Scott</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Ender's Game</column>
+      <column>Card, Orson Scott</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Xenocide</column>
+      <column>Card, Orson Scott</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Speaker for the dead</column>
+      <column>Card, Orson Scott</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Alice in Wonderland</column>
+      <column>Caroll, Lewis</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Through the Looking-Glass</column>
+      <column>Carroll, Lewis</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Alice's Adventures in Wonderland</column>
+      <column>Carroll, Lewis</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De rode planeet</column>
+      <column>Chilton, Charles</column>
+      <column>Journey into space</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De verre aarde</column>
+      <column>Clarke, Arthur C.</column>
+      <column>The Songs of distant eart</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>In het witte hert</column>
+      <column>Clarke, Arthur C.</column>
+      <column>Tales from the white hart</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Sentinal</column>
+      <column>Clarke, Arthur C.</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Doodsangst</column>
+      <column>Cook, Robin</column>
+      <column>Mortal Fear</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Ontvoerd</column>
+      <column>Cook, Robin</column>
+      <column>Abduction</column>
+      <column>NL</column>
+      <column>***</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Intern</column>
+      <column>Cook, Robin</column>
+      <column>The year of the intern</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Epidemie</column>
+      <column>Cook, Robin</column>
+      <column>Outbreak</column>
+      <column>NL</column>
+      <column>***</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Invasie</column>
+      <column>Cook, Robin</column>
+      <column>Invasion</column>
+      <column>NL</column>
+      <column>***</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Harmfull intent</column>
+      <column>Cook, Robin</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Brein</column>
+      <column>Cook, Robin</column>
+      <column>Brain</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Fataal Weekend</column>
+      <column>Cornwell, Patricia D.</column>
+      <column>Postmorte</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>V</column>
+      <column>Crispin, A.C.</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Gift van de Shai</column>
+      <column>Dibell, Ansen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column>The Sun of return</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Vlucht in Visioenen</column>
+      <column>Dick, Philip K.</column>
+      <column>A Maze of Death</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De laatste lach</column>
+      <column>Dick, Philip K.</column>
+      <column>The man who japed</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De Duivelsstaf</column>
+      <column>Disch, Thomas M.</column>
+      <column>The M.D.</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>De vloek van heer Veil</column>
+      <column>Donaldson, Stephen</column>
+      <column>Lord Faul's Bane</column>
+      <column>NL</column>
+      <column></column>
+      <column>De kronieken van Thomas Covenant</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Third Twin</column>
+      <column>Follet, Ken</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>De dag na morgen</column>
+      <column>Folsom, Allan</column>
+      <column>The day after tomorrow</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Red, Red, Robin</column>
+      <column>Gallagher, Stephen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Afdaling in DIS</column>
+      <column>Harness, Charles</column>
+      <column>Wolfhead</column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Vuurvogel</column>
+      <column>Harness, Charles</column>
+      <column>Firebird</column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Thuiswereld</column>
+      <column>Harrison, Harry</column>
+      <column>Homeworld</column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Wereldcyclus Trilogie</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Graanwereld</column>
+      <column>Harrison, Harry</column>
+      <column>Wheelworl</column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Wereldcyclus Trilogie</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Wereldcyclus Trilogie</column>
+      <column>Harrison, Harry</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Wereldcyclus Trilogie</column>
+      <column>Omnibus</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Sterrenwereld</column>
+      <column>Harrison, Harry</column>
+      <column>Starworld</column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Wereldcyclus Trilogie</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Vertrek van Aankomst</column>
+      <column>Harrison, Harry</column>
+      <column>One step from Earth</column>
+      <column>NL</column>
+      <column></column>
+      <column>Vertek van Aankomst</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Verdwaald tussen de sterren</column>
+      <column>Heinlein, Robert A</column>
+      <column></column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Science fiction verhalen</column>
+      <column>Heinlein, Robert A</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Verhalendundel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The past through tomorrow Vol1</column>
+      <column>Heinlein, Robert A</column>
+      <column></column>
+      <column>EN</column>
+      <column>****</column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Duin Messias</column>
+      <column>Herbert, Frank</column>
+      <column>Dune Massiah</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Fiction</column>
+      <column>Pillar of the Sky</column>
+      <column>Holland, Cecelia</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Epos</column>
+      <column>Ilias en Odyssea</column>
+      <column>Homeros</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Epos</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Bezeten stad</column>
+      <column>King, Stephen</column>
+      <column>Salem's Lot</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Carrie</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Bag of Bones</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Tweeduister</column>
+      <column>King, Stephen</column>
+      <column>Four Past Midnight</column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Tweeduister</column>
+      <column>Omnibus</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Alles is eventueel</column>
+      <column>King, Stephen</column>
+      <column>Everything's Eventual. 14 Dark Tales</column>
+      <column>NL</column>
+      <column>***</column>
+      <column>Alles is eventueel</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Rita Hayworth and Shawshank Redemption</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Different Seasons</column>
+      <column>Novella</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Body</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Different Seasons</column>
+      <column>Novella</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>The Breathing Method</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Different Seasons</column>
+      <column>Novella</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Ogen van vuur</column>
+      <column>King, Stephen</column>
+      <column>Firestarter</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Cujo</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Christine</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Dolan's Cadillac</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Verhaal</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Duistere Krachten</column>
+      <column>King, Stephen</column>
+      <column>Skeleton Crew</column>
+      <column>NL</column>
+      <column></column>
+      <column>Duistere Krachten</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Het</column>
+      <column>King, Stephen</column>
+      <column>It</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Misery</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Desperation</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Desperation</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Dreamcatcher</column>
+      <column>King, Stephen</column>
+      <column>Dromenvanger</column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Gerald's Game</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Nightshif</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column>****</column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De Noodzaak</column>
+      <column>King, Stephen</column>
+      <column>Needful things</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Apt Pupil</column>
+      <column>King, Stephen</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Different Seasons</column>
+      <column>Novella</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De Engelieren</column>
+      <column>King, Stephen</column>
+      <column>The Langoliers</column>
+      <column>NL</column>
+      <column>*****</column>
+      <column>Tweeduister</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Het geheime raam</column>
+      <column>King, Stephen</column>
+      <column>Secret Window, Secret garden</column>
+      <column>NL</column>
+      <column></column>
+      <column>Tweeduister</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Het spiegelbeeld van de maaier</column>
+      <column>King, Stephen</column>
+      <column>Skeleton Crew</column>
+      <column>NL</column>
+      <column></column>
+      <column>Het spiegelbeeld van de Maaier</column>
+      <column>Verhalenbundel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Zwijg!</column>
+      <column>Klavan, Andrew</column>
+      <column>Don't say a word</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>True Crime</column>
+      <column>Klavan, Andrew</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>One door away from heaven</column>
+      <column>Koontz, Dean</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>False Memory</column>
+      <column>Koontz, Dean</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De trotse robot</column>
+      <column>Kuttner, Henry</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Werelden onder de horizon</column>
+      <column>Lans, Carl</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Werelden onder de horizon</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De laatste generatie</column>
+      <column>Lindsey, Hal</column>
+      <column>Hope for...the terminal generation</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Theology</column>
+      <column>De planeet die Aarde heette...</column>
+      <column>Lindsley, Hal</column>
+      <column>The Late Great Planet Earth</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column></column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror / Sci-Fi</column>
+      <column>Het gefluister in de duisternis</column>
+      <column>Lovecraft, H. P.</column>
+      <column></column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>De Scorpio obsessie</column>
+      <column>Ludlum, Robert</column>
+      <column>The Scorpio Illusio</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Het Trevayne verraad</column>
+      <column>Ludlum, Robert</column>
+      <column>Trevanye</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Het Hoover archief</column>
+      <column>Ludlum, Robert</column>
+      <column>The Chancellor Manuscript</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Bourne Supremacy</column>
+      <column>Ludlum, Robert</column>
+      <column>Het Jason Dubbelspe</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Chancellor Manuscript</column>
+      <column>Ludlum, Robert</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Scorpio Illusion</column>
+      <column>Ludlum, Robert</column>
+      <column></column>
+      <column>EN</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Bourne Ultimatum</column>
+      <column>Ludlum, Robert</column>
+      <column>Het Medusa Bedrog</column>
+      <column>EN</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Matarese Circle</column>
+      <column>Ludlum, Robert</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Het Bourne Bedrog</column>
+      <column>Ludlum, Robert</column>
+      <column>The Bourne Identity</column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>The Matarese Circle</column>
+      <column>Ludlum, Robert</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Xanthe en haar robots</column>
+      <column>Macleod, Sheila</column>
+      <column>Xanthe and the robots</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Crossover</column>
+      <column>McCay, Bill</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Memoires van een ruimtevrouw</column>
+      <column>Mitchison, Naomi</column>
+      <column>Memoires of a spacewoman</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Ringworld</column>
+      <column>Niven, Larry</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Vlaklander</column>
+      <column>Niven, Larry</column>
+      <column>Flatlande</column>
+      <column>NL</column>
+      <column></column>
+      <column>Neutronster</column>
+      <column>Verhaal</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Ringworld Throne</column>
+      <column>Niven, Larry</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Neutronster</column>
+      <column>Niven, Larry</column>
+      <column>Neutronstar</column>
+      <column>NL</column>
+      <column>*****</column>
+      <column>Neutronster</column>
+      <column>Omnibus</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-fi</column>
+      <column>The Ringworld engineers</column>
+      <column>Niven, Larry</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De Vogelmannen van Gor</column>
+      <column>Norman, John</column>
+      <column>Tarnsman of Gor</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Deus Ex Machina</column>
+      <column>Oulette, Pierre</column>
+      <column>The Deus Machine</column>
+      <column>NL</column>
+      <column>***</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror / Thriller</column>
+      <column>Tien vertellingen</column>
+      <column>Poe, Edgar Allan</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column>Tien vertellingen</column>
+      <column>Verhalenbundel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Het reisverhaal van Arthur Gorden Pym</column>
+      <column>Poe, Edgar Allan</column>
+      <column>The Narrative of Arthur Gorden Pym</column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>30 beroemde verhalen</column>
+      <column>Poe, Edgar Allan</column>
+      <column>Tales of mystery and imagination</column>
+      <column>NL</column>
+      <column>***</column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi / Horror</column>
+      <column>E.A. Poe Omnibus</column>
+      <column>Poe, Edgar Allen</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Zone Soldiers</column>
+      <column>Ransom, Daniel</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De Vloek</column>
+      <column>Ransom, Daniel</column>
+      <column>The Forsaken</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-FI</column>
+      <column>Aan het eind van de regenboog</column>
+      <column>Russel, Eric Frank</column>
+      <column>Rainbow's end</column>
+      <column>NL</column>
+      <column></column>
+      <column>Aan het eind van de regenboog</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Contact</column>
+      <column>Sagan, Carl</column>
+      <column></column>
+      <column>NL</column>
+      <column>*****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Noodsprong</column>
+      <column>Sandford, John</column>
+      <column>The Night Crew</column>
+      <column>NL</column>
+      <column>***</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>The Homin</column>
+      <column>Saul, John</column>
+      <column></column>
+      <column>EN</column>
+      <column>***</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Waterhole</column>
+      <column>Savarin, Julian</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De nacht van de vampier</column>
+      <column>Saxon, Peter</column>
+      <column>Vampire's Moon</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Renegade</column>
+      <column>Scotten, Cordell</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Avernus</column>
+      <column>Shaw, Bob</column>
+      <column>A wreath of stars</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Dossier</column>
+      <column>Shobin, David</column>
+      <column>The Center</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Oproer der geesteskinderen</column>
+      <column>Simak, Clifford D</column>
+      <column>Out of their minds</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Scfi-Fi</column>
+      <column>Endymion</column>
+      <column>Simmons, Dan</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column>The Hyperion Cantos</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Hyperion</column>
+      <column>Simmons, Dan</column>
+      <column></column>
+      <column>NL</column>
+      <column>*****</column>
+      <column>The Hyperion Cantos</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Fall of Hyperion</column>
+      <column>Simmons, Dan</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>The Hyperion Cantos</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De opkomst van Endymion</column>
+      <column>Simmons, Dan</column>
+      <column>The Rise of Endymio</column>
+      <column>NL</column>
+      <column></column>
+      <column>The Hyperion Cantos</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>Aasgieren</column>
+      <column>Simmons, Dan</column>
+      <column>Carrion Comfort</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Close encounters of the third kind</column>
+      <column>Spielberg, Steven</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Laatste en eerste mensen</column>
+      <column>Stapledon, Olaf</column>
+      <column>Last and first men</column>
+      <column>NL</column>
+      <column>**</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Cryptonomicon</column>
+      <column>Stephenson, Neal</column>
+      <column></column>
+      <column>EN</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Horror</column>
+      <column>De Honger</column>
+      <column>Strieber, Whitley</column>
+      <column>The Hunge</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Science</column>
+      <column>De biologische tijdbom</column>
+      <column>Taylor, G. Rattray</column>
+      <column>The Biological Time/Bomb</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Journal</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Het brein in de krabnevel</column>
+      <column>Thijssen, Felix</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Het brein in de krabnevel</column>
+      <column>Thijssen, Felix</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Siro's planeet</column>
+      <column>Thijssen, Felix</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De laatste schotel</column>
+      <column>Thijssen, Felix</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Emmarg</column>
+      <column>Thijssen, Felix</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Het Wolkschip</column>
+      <column>Thijssen, Felix</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>10.000 lichtjaar van huis</column>
+      <column>Tiptree, James</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Verhalenbundel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The Pnume</column>
+      <column>Vance, Jack</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Planet of Adventure</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Servants of the Wankh</column>
+      <column>Vance, Jack</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Planet of Adventure</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Wyst: Alastor1716</column>
+      <column>Vance, Jack</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>City of the Chasch</column>
+      <column>Vance, Jack</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Planet of Adventure</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Fantasy</column>
+      <column>Eerste boek: Station araminta</column>
+      <column>Vance, Jack</column>
+      <column>The Cadwal Chronicles: Araminta station</column>
+      <column>NL</column>
+      <column></column>
+      <column>De kronieken van Cadwal</column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-FI</column>
+      <column>Emphyrio</column>
+      <column>Vance, Jack</column>
+      <column></column>
+      <column>NL</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Spelevaren op Grote Planeet</column>
+      <column>Vance, Jack</column>
+      <column>Showboat World</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Planet of Adventure</column>
+      <column>Vance, Jack</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Planet of Adventure</column>
+      <column>Omnibus</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>The DirDir</column>
+      <column>Vance, Jack</column>
+      <column></column>
+      <column>EN</column>
+      <column>*****</column>
+      <column>Planet of Adventure</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Vancextacy</column>
+      <column>Vance, Jack e.a.</column>
+      <column></column>
+      <column>NL</column>
+      <column>***</column>
+      <column>Vancextacy</column>
+      <column>Verhalenbundel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Adventure</column>
+      <column>Wonderreizen. Twee jaar vakantie: Een knapenkolonie</column>
+      <column>Verne, Jules</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Adventure</column>
+      <column>Wonderreizen. Twee jaar vakantie: Een mislukte pleziertocht</column>
+      <column>Verne, Jules</column>
+      <column></column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Planets for sale</column>
+      <column>Vogt, AE. van</column>
+      <column></column>
+      <column>EN</column>
+      <column>****</column>
+      <column></column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Het gestolen brein</column>
+      <column>Vogt, AE. van</column>
+      <column>The mindcage</column>
+      <column>NL</column>
+      <column>*****</column>
+      <column>Maanbeest Het gestolen brein, Oorlog tegen de Rull</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Maanbeest</column>
+      <column>Vogt, AE. van</column>
+      <column>The Beast (Moonbeast)</column>
+      <column>NL</column>
+      <column>***</column>
+      <column>Maanbeest Het gestolen brein, Oorlog tegen de Rull</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>Oorlog tegen de Rull</column>
+      <column>Vogt, AE. van</column>
+      <column>The war against the Rull</column>
+      <column>NL</column>
+      <column>****</column>
+      <column>Maanbeest Het gestolen brein, Oorlog tegen de Rull</column>
+      <column>Novel</column>
+      <column>X</column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Het rampschip Aarde</column>
+      <column>Warshofsky, Fred</column>
+      <column>Doomsday</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Thriller</column>
+      <column>Sluipjacht</column>
+      <column>Washburn, Stan</column>
+      <column>Intent to Harm</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De planetenoorlog</column>
+      <column>Wells, H. G.</column>
+      <column>The war of the worlds</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+    <row>
+      <column>Sci-Fi</column>
+      <column>De Getekenden</column>
+      <column>Wyndham, John</column>
+      <column>The Chrysalids</column>
+      <column>NL</column>
+      <column></column>
+      <column></column>
+      <column>Novel</column>
+      <column></column>
+    </row>
+  </rows>
+</list>

@@ -11,17 +11,29 @@
 #ifndef LIST_H
 #define LIST_H
 
-/* Import CSV options */
-#define IMPORT_CSV_HEADER         1 << 0 /* First row contains column header titles */
-#define IMPORT_CSV_QUOTE_ENCLODED 1 << 1 /* Fields are enclosed in quotes (single or double) */
+/* List find options */
+#define FIND_MATCHCASE 1
+#define FIND_MATCHFULL 2
 
 /* Export Printable (PS) options */
 #define ORIENT_PORTRAIT 0
 #define ORIENT_LANDSCAPE 1
 
-/* List find options */
-#define FIND_MATCHCASE 1
-#define FIND_MATCHFULL 2
+typedef struct sort_col_ {
+	char *col_name;
+	int col_nr;
+	int sort_order;
+} sort_col_;
+
+typedef struct sort_ {
+	char *name;
+	GArray *columns; /* (sort_col_ *) */
+} sort_;
+
+typedef struct rule_ {
+	char *name;
+	void *data; /* Pointer to sort_, filter_ or report_ */
+} rule_;
 
 typedef struct list_ {
 	char *filename;
@@ -34,7 +46,11 @@ typedef struct list_ {
 	char *keywords;
 
 	GtkListStore *liststore; /* Row information */
-	GArray *columns; /* Column titles */
+	GArray *columns; /* Column titles (char *) */
+	
+	sort_col_ sort_single; /* Sorting on a single column (when user presses a col header */
+	GArray *sort_active; /* Currenly active user-defined sorting rule (sort_col_ *) */
+	GArray *sorts;       /* Array of all user-defined sorting rules (sort_ *) */
 	
 	int nr_of_cols;
 	int nr_of_rows;
@@ -44,25 +60,17 @@ typedef struct list_ {
 	int last_occ_row;
 } list_;
 
-typedef struct import_ {    /*  Move to listpatron.c */
-	char *filename;
-	char delimiter;
-} import_;
-
-typedef struct export_ { /*  Move to listpatron.c */
-	char *filename;
-
-	int orientation;
-
-	char delimiter;
-} export_;
-
 typedef struct find_ {/*  Move to listpatron.c */
 	GtkWidget *ent_needle;
 	int matchcase;
 	int matchfull;
 } find_;
 
+void list_sort_dump_rules(void);
+sort_ *list_sort_getrule(char *name);
+void list_sort_add(char *old_name, char *name, GArray *columns);
+void list_sort_remove(char *name);
+gint list_sort_func (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer user_data);
 void list_column_add(list_ *list, char *title);
 void list_column_delete(list_ *list, GtkTreeViewColumn *column);
 void list_column_rename(int col_nr, char *title);
@@ -74,8 +82,6 @@ void list_title_set(char *title);
 void list_clear(void);
 int list_import_csv(list_ *list, char *filename, char delimiter);
 int list_export_csv(list_ *list, char *filename, char delimiter);
-void ui_file_export_ps_portrait_cb(GtkWidget *radio, export_ *export);
-void ui_file_export_ps_landscape_cb(GtkWidget *radio, export_ *export);
 int list_export_ps(list_ *list, char *filename, int orientation);
 int list_export_html(list_ *list, char *filename);
 int list_load(list_ *list, char *filename);
