@@ -442,9 +442,13 @@ void ui_menu_row_delete_cb (void) {
 }
 
 void ui_menu_debug_addtestdata_cb (void) {
-	int testdata_cols = 20, testdata_rows = 100;
+	int testdata_cols = 3, testdata_rows = 100;
 	int col, row;
-	char *col_headers[] = {"Col A", "Col B", "Col C"};
+	char *col_headers[] = {
+		"Col A", 
+		"Col B", 
+		"Col C"
+	};
 	char **col_vals;
 	
 	for (col = 0; col < testdata_cols; col++) {
