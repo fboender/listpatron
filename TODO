@@ -9,3 +9,9 @@ Small things that need to be taken care of but which I'm going to forget about
 * gchar should be used where appropriate.
 * Bug: New sorting rule with name 'Unnamed' overwrites existing 'Unnamed' rules without prompting.
 * rename 'listpatron.dtd' to 'listpatron-0.1.dtd'
+* Adding the first new row results in :
+  (listpatron:5489): GLib-GObject-CRITICAL **: file gobject.c: line 1642 (g_object_get_data): assertion `G_IS_OBJECT (object)' failed
+  Non-critical bug; As far as I know doesn't cause any real problems
+* Saving a list without rows results in:
+  (listpatron:16668): Gtk-CRITICAL **: file gtktreemodel.c: line 1001 (gtk_tree_model_get_iter_first): assertion `GTK_IS_TREE_MODEL (tree_model)' failed
+  Non-critical bug; As far as I know doesn't cause any real problems
