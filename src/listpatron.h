@@ -11,7 +11,6 @@
 #ifndef LISTPATRON_H
 #define LISTPATRON_H
 
-#define _DEBUG
 #define _TEST_COLS 5
 #define _TEST_ROWS 50
 
@@ -26,12 +25,14 @@ void debug_msg(int dbg_type, char *file, int line, char *fmt, ...);
 /* Menu callback functions */
 void ui_menu_file_new_cb(void);
 void ui_menu_file_import_csv_cb(void);
+void ui_menu_file_export_csv_cb(void);
 void ui_menu_file_export_ps_cb(void);
 void ui_menu_file_export_html_cb(void);
 void ui_menu_file_open_cb(void);
 void ui_menu_file_save_cb(void);
 void ui_menu_file_save_as_cb(void);
 void ui_menu_file_quit_cb(void);
+void ui_menu_edit_find_cb(void);
 void ui_menu_column_add_cb(void);
 void ui_menu_column_rename_cb(void);
 void ui_menu_column_delete_cb(void);
