@@ -11,7 +11,7 @@ listpatron:
 	$(CC) $(FLAGS) $(INCS) listpatron.c
 
 clean:
-	-rm lk
+	-rm listpatron
 	-rm *.o
 install:
 	echo "Under construction..."
