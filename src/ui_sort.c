@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * ListPatron - ui_menu
+ * ListPatron - ui_sort
  *
  * User Interface routines for the sorting rules editing
  *

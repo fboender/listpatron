@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * ListPatron - ui_menu
+ * ListPatron - ui_sort
  *
  * User Interface routines for the sorting rules editing
  *
@@ -8,8 +8,8 @@
  * For more information, see the COPYING file supplied with this program.                                                          
  * 
  ****************************************************************************/
-#ifndef UI_MENU_H
-#define UI_MENU_H
+#ifndef UI_SORT_H
+#define UI_SORT_H
 
 typedef struct ui_sort_ {
 	char *old_name;
@@ -36,4 +36,4 @@ void ui_sort_rule_edit_load(ui_sort_ *ui_sort, char *rulename, GtkListStore *ls_
 gint ui_sort_rule_edit(char *name);
 gint ui_sort_rules(void);
 
-#endif
+#endif /* UI_SORT_H */
