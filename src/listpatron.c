@@ -483,7 +483,7 @@ void list_column_add(list_ *list, char *title) {
 				for (i = 0; i < list->nr_of_cols; i++) {
 					gtk_tree_model_get(GTK_TREE_MODEL(liststore_old), &iter_old, i, &row_data, -1);
 					gtk_list_store_set(list->liststore, &iter, i, row_data, -1);
-					
+					free (row_data);
 				}
 				gtk_list_store_set(list->liststore, &iter, list->nr_of_cols, "", -1);
 			} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(liststore_old), &iter_old));
@@ -503,7 +503,7 @@ void list_column_add(list_ *list, char *title) {
 
 void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 	int liststore_remove_col_nr = -1;
-	GList *columns = NULL;
+	GList *columns = NULL, *column_iter;
 	GType *types = NULL;
 	GtkListStore *liststore_old = NULL;
 	int i;
@@ -517,23 +517,27 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 	/* Treeview: Remove column and update other columns to compensate for 
 	 * shifting in liststore */
 	columns = gtk_tree_view_get_columns(list->treeview);
-	while (columns != NULL) {
+	column_iter = columns;
+	while (column_iter != NULL) {
 		int col_nr;
 
-		col_nr = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(columns->data), "col_nr"));
+		col_nr = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column_iter->data), "col_nr"));
 
 		if (col_nr > liststore_remove_col_nr) { /* Shift columns to left */
 			GList *col_renderers = NULL;
 
-			col_renderers = gtk_tree_view_column_get_cell_renderers(columns->data);
-			gtk_tree_view_column_set_attributes(columns->data, col_renderers->data, "text", col_nr - 1, NULL);
-			gtk_tree_view_column_set_sort_column_id(columns->data, col_nr - 1);
+			col_renderers = gtk_tree_view_column_get_cell_renderers(column_iter->data);
+			gtk_tree_view_column_set_attributes(column_iter->data, col_renderers->data, "text", col_nr - 1, NULL);
+			gtk_tree_view_column_set_sort_column_id(column_iter->data, col_nr - 1);
 				
-			g_object_set_data(G_OBJECT(columns->data), "col_nr", GUINT_TO_POINTER(col_nr -1));
+			g_object_set_data(G_OBJECT(column_iter->data), "col_nr", GUINT_TO_POINTER(col_nr -1));
+
+			g_list_free(col_renderers);
 			
 		}
-		columns = columns->next;
+		column_iter = column_iter->next;
 	}
+	g_list_free (columns);
 	
 	gtk_tree_view_remove_column(list->treeview, column);
 		
@@ -569,6 +573,7 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 						if (i != liststore_remove_col_nr) {
 							gtk_tree_model_get(GTK_TREE_MODEL(liststore_old), &iter_old, i, &row_data, -1);
 							gtk_list_store_set(list->liststore, &iter, col_counter, row_data, -1);
+							free (row_data);
 							col_counter++;
 						}
 					}
@@ -830,6 +835,7 @@ newpath\n\
 	while (column_iter) {
 		column_iter = column_iter->next;
 	}
+	g_list_free (columns);
 
 	gtk_tree_model_get_iter_root(GTK_TREE_MODEL(list->liststore), &iter);
 	do {
@@ -891,7 +897,8 @@ int list_export_html(list_ *list, char *filename) {
 		fprintf(f, "\t\t\t\t<th>%s</th>\n", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
 		column_iter = column_iter->next;
 	}
-	
+	g_list_free (columns);
+
 	fprintf(f, "\
 		</tr>\n");
 
@@ -1034,6 +1041,8 @@ int list_load(list_ *list, char *filename) {
 		list_load_rows(list, nodeset);
 	}
 
+	xmlFreeDoc(doc);
+
 	gtk_window_move(GTK_WINDOW(win_main), pos_x, pos_y);
 	gtk_window_resize(GTK_WINDOW(win_main), dim_width, dim_height);
 
@@ -1111,6 +1120,7 @@ int list_save(list_ *list, char *filename) {
 		xml_add_element_content(node_header, "columnname", "%s", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
 		column_iter = column_iter->next;
 	}
+	g_list_free (columns);
 
 	/* Save row data <rows> */
 	node_rows = xmlNewChild(node_root, NULL, (const xmlChar *)"rows", NULL);
@@ -1126,6 +1136,7 @@ int list_save(list_ *list, char *filename) {
 	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
 
 	xmlSaveFormatFileEnc(filename, doc, "ISO-8859-1", 1);
+	xmlFreeDoc(doc);
 	
 	list->filename = strdup(filename); /* FIXME: Not freed */
 	list->modified = FALSE;
@@ -1144,18 +1155,20 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 	int col, row;
 
 	gtk_tree_view_get_cursor(list->treeview, &path, &column);
-	path_str = gtk_tree_path_to_string(path);
-	row = atoi(path_str);
+	if (path != NULL) {
+		path_str = gtk_tree_path_to_string(path);
+		gtk_tree_path_free(path);
+		row = atoi(path_str);
 
-	col = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
+		col = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
 
-	gtk_statusbar_msg("Row %i, Column %i", row+1, col+1);
+		gtk_statusbar_msg("Row %i, Column %i", row+1, col+1);
+	}
 }
 
 /* File open */
 void ui_file_open_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
 	char *filename = NULL;
-	char *sb_message = NULL;
 	int err_nr;
 	
 	filename = (char *)gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs));
@@ -1482,7 +1495,10 @@ void ui_menu_column_rename_cb(void) {
 	GtkTreeViewColumn *column;
 	
 	gtk_tree_view_get_cursor(list->treeview, &path, &column);
-	
+	if (path != NULL) {
+		gtk_tree_path_free(path);
+	}
+
 	if (column == NULL) {
 		return;
 	}
@@ -1502,6 +1518,9 @@ void ui_menu_column_delete_cb(void) {
 	GtkTreeViewColumn *column;
 	
 	gtk_tree_view_get_cursor(list->treeview, &path, &column);
+	if (path != NULL) {
+		gtk_tree_path_free(path);
+	}
 
 	list_column_delete(list, column);
 }
@@ -1520,9 +1539,11 @@ void ui_menu_row_delete_cb(void) {
 	
 	if (path != NULL) { /* Row selected? */
 		if (!gtk_tree_model_get_iter(GTK_TREE_MODEL(list->liststore), &iter, path)) {
+			gtk_tree_path_free(path);
 			return;
 		}
 		
+		gtk_tree_path_free(path);
 		gtk_list_store_remove(GTK_LIST_STORE(list->liststore), &iter);
 	}
 }
@@ -1624,6 +1645,9 @@ void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new
 	
 	/* Get column number */
 	gtk_tree_view_get_cursor(list->treeview, &path, &column);
+	if (path != NULL) {
+		gtk_tree_path_free(path);
+	}
 	col = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
 	
 	/* Set new text */
@@ -1833,7 +1857,6 @@ int main(int argc, char *argv[]) {
 	gtk_window_set_default_size(GTK_WINDOW(win_main), 500, 400);
 	
 	vbox_main = gtk_vbox_new(FALSE, 2);
-
 
 	win_scroll = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(win_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
