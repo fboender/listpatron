@@ -357,6 +357,8 @@ gint ui_sort_rule_edit(char *name) {
 					stop = 1;
 				}
 				break;
+			case GTK_RESPONSE_REJECT:
+				stop = 1;
 			default:
 				break;
 		}
