@@ -122,7 +122,6 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 	
 	liststore_remove_col_nr = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
 
-	printf ("%i\n", liststore_remove_col_nr);
 	removed_col = g_array_index(list->columns, char*, liststore_remove_col_nr);
 	list->columns = g_array_remove_index(list->columns, liststore_remove_col_nr);
 	free(removed_col);
@@ -206,6 +205,29 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 
 }
 
+void list_column_rename(int col_nr, char *title) {
+	char *title_index = NULL;
+
+	/* NOTICE: I've got the idea that this routine might not be correct.
+	 * We're getting the pointer stored in the array and changing the 
+	 * memory allocated to it. There might be problems with the address
+	 * changing and the g_array not being in sync anymore.
+	 */
+	title_index = g_array_index(list->columns, char *, col_nr);
+	title_index = realloc(title_index, sizeof(char) * (strlen(title) + 1));
+	strcpy(title_index, title);
+	
+	/* Do some sanity checking because of the notice above */
+	{
+		int pos;
+		title_index = g_array_index(list->columns, char *, col_nr);
+		for (pos = 0; title[pos] != '\0' && title_index[pos] == title[pos]; pos++) { ; }
+		assert(title_index[pos] == '\0');
+	}
+
+	list->modified = TRUE;
+}
+
 void list_row_add_empty(list_ *list) {
 	GtkTreeIter treeiter;
 	int i;
@@ -267,8 +289,11 @@ void list_row_delete(list_ *list, GList *row_refs) {
 		}
 
 		list->nr_of_rows--;
+		list->modified = TRUE;
+
 		iter = iter->next;
 	}
+
 }
 
 void list_title_set(char *title) {
@@ -293,6 +318,7 @@ void list_title_set(char *title) {
 	gtk_window_set_title(GTK_WINDOW(win_main), title_win);
 	free(title_win);
 
+	list->modified = TRUE;
 }
 
 list_ *list_create(void) {
@@ -346,6 +372,7 @@ void list_clear(void) {
 
 		free(list);
 		list = NULL; /* FIXME: Does this reference the local or global var? */
+		list->modified = TRUE;
 	} else {
 		gtk_statusbar_msg("It's really empty. Don't worry"); /* FIXME: Doesn't belong here */
 	}
@@ -412,7 +439,7 @@ int list_import_csv(list_ *list, char *filename, char delimiter) {
 	
 	fclose(f);
 
-	list->modified = FALSE;
+	list->modified = TRUE;
 
 	return (failed_rows);
 }
@@ -660,10 +687,11 @@ void list_load_header(list_ *list, xmlNodeSetPtr nodeset_header) {
 	list->nr_of_cols = nodeset_header->nodeNr;
 }
 
-void list_load_rows(list_ *list, xmlNodeSetPtr nodeset_rows) {
+int list_load_rows(list_ *list, xmlNodeSetPtr nodeset_rows) {
 	int i;
 	xmlNodePtr node_iter;
 	char **rowdata;
+	int err = 0;
 	
 	for (i = 0; i < nodeset_rows->nodeNr; i++) {
 		int j = 0;
@@ -673,6 +701,9 @@ void list_load_rows(list_ *list, xmlNodeSetPtr nodeset_rows) {
 		
 		while (node_iter != NULL) {
 			if (node_iter->type == XML_ELEMENT_NODE) {
+				if (j > list->nr_of_cols) {
+					break; /* Corrupt file */
+				}
 				if (node_iter->children != NULL) {
 					rowdata[j] = node_iter->children->content;
 				} else {
@@ -681,11 +712,24 @@ void list_load_rows(list_ *list, xmlNodeSetPtr nodeset_rows) {
 				j++;
 			}
 			node_iter = node_iter->next;
+			
 		}
 
-		list_row_add(list, rowdata);
+		if (j == list->nr_of_cols) {
+			list_row_add(list, rowdata);
+		} else {
+			err = -3;
+			if (j > list->nr_of_cols) {
+				fprintf(stderr, "Invalid row (too many columns). Skipping. FILE IS PROBABLY CORRUPT.\n");
+			} else {
+				fprintf(stderr, "Invalid row (too few columns). Skipping. FILE IS PROBABLY CORRUPT.\n");
+			}
+		}
+
 		free(rowdata);
 	}
+
+	return(err);
 }
 
 int list_load(list_ *list, char *filename) {
@@ -694,6 +738,7 @@ int list_load(list_ *list, char *filename) {
 	xmlNodeSetPtr nodeset = NULL;
 	xmlValidCtxtPtr valid_ctxt = NULL;
 	int read_options = 0; 
+	int err = 0;
 	
 	if (opt_verbose) {
 		read_options = XML_PARSE_DTDVALID;
@@ -740,18 +785,25 @@ int list_load(list_ *list, char *filename) {
 	}
 	
 	if ((nodeset = xml_get_nodeset(doc, "/list/rows/row")) != NULL) {
-		list_load_rows(list, nodeset);
+		if (list_load_rows(list, nodeset) != 0) {
+			err = -3;
+		}
 	}
 
 	xmlFreeDoc(doc);
 
+	/* FIXME: Move this to listpatron.c. It's the UI's responsibility to move the window */
 	gtk_window_move(GTK_WINDOW(win_main), pos_x, pos_y);
 	gtk_window_resize(GTK_WINDOW(win_main), dim_width, dim_height);
 
 	list->filename = strdup(filename); /* FIXME: Not freed */
 	list->modified = FALSE;
 
-	return (0);
+	if (err != 0) { 
+		return(err);
+	} else {
+		return (0);
+	}
 }
 
 int list_save(list_ *list, char *filename) {
@@ -834,17 +886,15 @@ int list_save(list_ *list, char *filename) {
 	gtk_tree_model_get_iter_root(GTK_TREE_MODEL(list->liststore), &iter);
 	do {
 		node_row = xmlNewChild(node_rows, NULL, (const xmlChar *)"row", NULL);
-		for (i = 0; i < 1; i++) {
+		for (i = 0; i < list->nr_of_cols; i++) {
 			GtkTreeViewColumn* col;
 
 			gtk_tree_model_get(GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
 			
 			col = gtk_tree_view_get_column(treeview, i);
 			xml_add_element_content(node_row, "column", "%s", row_data);
-			printf("list_save: *%s*\n", row_data);
 			free(row_data);
 		}
-		printf("\n");
 	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
 
 	xmlSaveFormatFileEnc(filename, doc, "ISO-8859-1", 1);
