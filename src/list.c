@@ -805,17 +805,22 @@ int list_export_html(list_ *list, char *filename) {
 		th { text-align: left; background-color: #000000; color: #FFFFFF; }\n\
 		tr.row_even { background-color: #F0F0F0; }\n\
 		tr.row_odd { background-color: #FFFFFF; }\n\
+		td { white-space: nowrap; }\n\
 	</style>\n\
+	<title>%s</title>\n\
 </head>\n\
 <body>\n\
+	<h1>%s</h1>\n\
 	<table>\n\
-		<tr>");
+		<tr>\n",
+		list->title,
+		list->title);
 	
 	/* Save column headers */
 	columns = gtk_tree_view_get_columns(treeview);
 	column_iter = columns;
 	while (column_iter) {
-		fprintf(f, "\t\t\t\t<th>%s</th>\n", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
+		fprintf(f, "\t\t\t<th>%s</th>\n", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
 		column_iter = column_iter->next;
 	}
 	g_list_free(columns);
@@ -827,17 +832,18 @@ int list_export_html(list_ *list, char *filename) {
 	row_even = 1;
 	gtk_tree_model_get_iter_root(GTK_TREE_MODEL(list->liststore), &iter);
 	do {
-		fprintf(f, "\t\t\t<tr %s>\n", row_colors[row_even]);
+		fprintf(f, "\t\t<tr valign=\"top\" %s>\n", row_colors[row_even]);
 		for (i = 0; i < list->nr_of_cols; i++) {
 			gtk_tree_model_get(GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
-			fprintf(f, "\t\t\t\t<td>%s</td>\n", row_data);
+			fprintf(f, "\t\t\t<td>%s</td>\n", row_data);
 			free(row_data);
 		}
-		fprintf(f, "\t\t\t</tr>\n");
+		fprintf(f, "\t\t</tr>\n");
 		row_even ^= 1;
 	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
 	
 	fprintf(f, "\
+		</table>\n\
 	</body>\n\
 </html>\n");
 
