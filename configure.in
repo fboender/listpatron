@@ -1,0 +1,37 @@
+AC_INIT([ListPatron],[0.1],[http://www.electricmonk.nl/index.php?page=ListPatron])
+AC_CONFIG_SRCDIR(src/listpatron.c)
+
+AM_INIT_AUTOMAKE(listpatron,0.1)
+AM_CONFIG_HEADER(config.h)
+
+CXXFLAGS=
+
+AC_PROG_CC dnl for AM_PROG_GTK only
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+AC_HEADER_STDC
+
+dnl it will define GTK_CFLAGS and GTK_LIBS for us,
+dnl comes from gtk.m4 (aclocal will find it for us)
+AM_PATH_GTK_2_0(2.4.14)
+AM_PATH_XML2(2.6.11)
+
+AC_LANG_CPLUSPLUS dnl else AM_PATH_GTK blows up
+
+#AC_CONFIG_SUBDIRS(src)
+dnl AC_CHECK_LIB(stdc++, main,,AC_MSG_ERROR(gdu requires libstdc++))
+dnl AC_CHECK_HEADERS(stack,,AC_MSG_WARN(STL classes missing ?))
+dnl AC_CHECK_HEADERS(string,,AC_MSG_WARN(STL classes missing ?))
+dnl AC_CHECK_HEADERS(list,,AC_MSG_WARN(STL classes missing ?))
+dnl AC_CHECK_HEADERS(vector,,AC_MSG_WARN(STL classes missing ?))
+
+AC_OUTPUT([Makefile 
+           src/Makefile 
+		   data/Makefile 
+		   testdata/Makefile 
+		   pixmaps/Makefile 
+		   pixmaps/icons/Makefile
+		  ])
+
