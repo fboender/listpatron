@@ -9,7 +9,14 @@
  * 
  ****************************************************************************/
 
+#include <stdarg.h>
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+
 #include "debug.h"
+
+extern int opt_verbose;
 
 void debug_msg(int dbg_type, char *file, int line, char *fmt, ...) {
 #ifdef _DEBUG
@@ -31,7 +38,7 @@ void debug_msg(int dbg_type, char *file, int line, char *fmt, ...) {
 		if (n < -1) {
 			return;
 		} else 
-		if (n > err_len) { /* Throw some more mem at the buf */
+		if (n >= err_len) { /* Throw some more mem at the buf */
 			err_len = (2 * err_len);
 			n = err_len;
 			err_usr = realloc(err_usr, err_len+1);
