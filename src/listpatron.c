@@ -155,7 +155,7 @@ int ui_file_load(char *filename) {
 		switch (err_nr) {
 			case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
 			case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
-			case -3: gtk_error_dialog("Corrupt listpatron file '%s'.\n\nSome of all of the information in the file may have been lost.", filename); break;
+			case -3: gtk_error_dialog("Corrupt listpatron file '%s'.\n\nSome or all of the information in the file may have been lost.", filename); break;
 			default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
 		}
 	} else {
@@ -665,7 +665,6 @@ void ui_menu_edit_find_cb(void) {
 	gtk_widget_show_all(dia_find);
 
 	while ((result = gtk_dialog_run(GTK_DIALOG(dia_find))) != GTK_RESPONSE_REJECT) {
-		printf ("%i %i\n", find->matchcase, find->matchfull);
 		ui_find_find_cb(find->ent_needle, find);
 	}
 
@@ -701,7 +700,6 @@ void ui_menu_column_rename_cb(void) {
 
 	col_nr = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(column), "col_nr"));
 
-	printf("col_nr : %i\n", col_nr);
 
 	column_name = gtk_input_dialog(
 			"Enter the column name", 
