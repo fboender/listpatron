@@ -143,6 +143,7 @@ void list_sort_remove(list_ *list, char *name) {
 	list->modified = TRUE;
 }
 
+
 /* FIXME: This routine can and should be optimized. */
 gint list_sort_func (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer user_data) {
 	list_ *list;
@@ -218,6 +219,85 @@ void list_sorts_remove_column(int col_nr) {
 	list->modified = TRUE;
 }
 
+/* Rename a column in all sorting rules */
+void list_sorts_rename_column(int col_nr, char *new_name) {
+	int i;
+
+	for (i = 0; i < list->sorts->len; i++) {
+		sort_ *sort;
+		int j;
+		int col_nr_remove = -1;
+		
+		sort = g_array_index(list->sorts, sort_ *, i);
+
+		for (j = 0; j < sort->columns->len; j++) {
+			sort_col_ *sort_col;
+
+			sort_col = g_array_index(sort->columns, sort_col_ *, j);
+
+			if (sort_col->col_nr == col_nr) {
+				free(sort_col->col_name);
+				sort_col->col_name = strdup(new_name);
+			}
+		}
+	}
+
+	list->modified = TRUE;
+}
+
+/* Add a column to the end of all sorting rules */
+void list_sorts_add_column(int col_nr, char *name) {
+	int i;
+
+	for (i = 0; i < list->sorts->len; i++) {
+		sort_ *sort;
+		sort_col_ *sort_col;
+		int j, dup;
+		int col_nr_remove = -1;
+		
+		sort = g_array_index(list->sorts, sort_ *, i);
+
+		/* Do a check to see if the column already exists.This can happen when 
+		 * sorts have already been loaded through list_sort_add().
+		 */
+		dup = 0;
+		for (j = 0; j < sort->columns->len && dup == 0; j++) {
+			sort_col_ *sort_col;
+
+			sort_col = g_array_index(sort->columns, sort_col_ *, j);
+
+			if (strcmp(sort_col->col_name, name) == 0) {
+				dup = 1;
+			}
+		}
+
+		if (dup == 0) {
+			sort_col = malloc(sizeof(sort_col));
+
+			sort_col->col_name = strdup(name);
+			sort_col->col_nr = col_nr;
+			sort_col->sort_order = GTK_SORT_ASCENDING;
+
+			g_array_append_val(sort->columns, sort_col);
+		}
+
+//		g_array_append(
+//		for (j = 0; j < sort->columns->len; j++) {
+//			sort_col_ *sort_col;
+//
+//			sort_col = g_array_index(sort->columns, sort_col_ *, j);
+//
+//			if (sort_col->col_nr == col_nr) {
+//				free(sort_col->col_name);
+//				sort_col->col_name = strdup(new_name);
+//			}
+//		}
+	}
+
+	list->modified = TRUE;
+}
+
+
 void list_column_add(list_ *list, char *title) {
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *col;
@@ -289,6 +369,9 @@ void list_column_add(list_ *list, char *title) {
 			
 		}
 	}
+
+	/* Update list information : Sorts */
+	list_sorts_add_column(list->nr_of_cols, title);
 
 	gtk_tree_view_set_model(treeview, GTK_TREE_MODEL(list->liststore));
 	
@@ -409,6 +492,9 @@ void list_column_rename(int col_nr, char *title) {
 	title_index = g_array_index(list->columns, char *, col_nr);
 	title_index = realloc(title_index, sizeof(char) * (strlen(title) + 1));
 	strcpy(title_index, title);
+
+	/* Rename column in all sorting rules */
+	list_sorts_rename_column(col_nr, title);
 	
 	/* Do some sanity checking because of the notice above */
 	{
