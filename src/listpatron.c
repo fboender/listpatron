@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <getopt.h>
 #include <gtk/gtk.h>
 #include <glib-object.h>
 #include <libxml/parser.h>
@@ -72,6 +73,7 @@ typedef struct export_ {
 	char *filename;
 	int orientation;
 } export_;
+
 
 /* Character Separated Value's Import options */
 #define IMPORT_CSV_HEADER         1 << 0 /* First row contains column header titles */
@@ -172,6 +174,12 @@ GtkWidget *lbl_listtitle;
 guint sb_context_id;
 GtkWidget *sb_status;
 
+static int 
+	opt_help,
+	opt_batch,
+	opt_verbose,
+	opt_version;
+
 list_ *list = NULL;
 
 /****************************************************************************
@@ -183,6 +191,10 @@ void debug_msg (int dbg_type, char *file, int line, char *fmt, ...) {
 	char *err_usr = NULL, *err;
 	int n = 10, err_len = 10;
 	
+	if (!opt_verbose) { 
+		return; 
+	}
+
 	err_usr = malloc(err_len);
 
 	while (n == err_len) { /* Keep trying until msg fits in the buffer */
@@ -353,12 +365,22 @@ char *xml_get_element_content (xmlDocPtr doc, char *xpath) {
 	context = xmlXPathNewContext(doc);
 	result = xmlXPathEvalExpression(xpath, context);
 	if (xmlXPathNodeSetIsEmpty(result->nodesetval)) {
-		return (NULL);
+		return ("");
 	}
 	xmlXPathFreeContext(context);
 
 	/* FIXME: extra error checking */
 	return (result->nodesetval->nodeTab[0]->children->content);
+}
+
+char *xml_element_get_value (xmlNodePtr node_parent, char *element_name) {
+	if (node_parent->type == XML_ELEMENT_NODE) {
+		if (strcmp(node_parent->name, element_name) == 0) {
+			return (node_parent->children->content);
+		}
+	}
+
+	return (NULL);
 }
 
 /****************************************************************************
@@ -848,26 +870,22 @@ int list_export_html (list_ *list, char *filename) {
 	return (0);
 }
 
-char *xml_element_get_value (xmlNodePtr node_parent, char *element_name) {
-	if (node_parent->type == XML_ELEMENT_NODE) {
-		if (strcmp(node_parent->name, element_name) == 0) {
-			return (node_parent->children->content);
-		}
-	}
-
-	return (NULL);
-}
-
 int list_load_filters (list_ *list, xmlNodeSetPtr node_filters) {
-	printf ("Filters are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	if (opt_verbose) {
+		printf ("Filters are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	}
 	return (0);
 }
 int list_load_sorts (list_ *list, xmlNodeSetPtr node_sorts) {
-	printf ("Sorts are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	if (opt_verbose) {
+		printf ("Sorts are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	}
 	return (0);
 }
 int list_load_reports (list_ *list, xmlNodeSetPtr node_reports) {
-	printf ("Reports are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	if (opt_verbose) {
+		printf ("Reports are not implemented yet. If you want to help out, take a look at file '%s', line %i\n", __FILE__, __LINE__);
+	}
 	return (0);
 }
 
@@ -875,8 +893,11 @@ void list_load_header (list_ *list, xmlNodeSetPtr nodeset_header) {
 	int i;
 
 	for (i = 0; i < nodeset_header->nodeNr; i++) {
-		/* FIXME: Might be empty: <columnname></columnname> */
-		list_column_add (list, nodeset_header->nodeTab[i]->children->content);
+		if (nodeset_header->nodeTab[i]->children) {
+			list_column_add (list, nodeset_header->nodeTab[i]->children->content);
+		} else {
+			list_column_add (list, "");
+		}
 	}
 
 	list->nr_of_cols = nodeset_header->nodeNr;
@@ -915,8 +936,13 @@ int list_load (list_ *list, char *filename) {
 	int pos_x, pos_y, dim_width, dim_height;
 	xmlNodeSetPtr nodeset = NULL;
 	xmlValidCtxtPtr valid_ctxt = NULL;
+	int read_options = 0; 
 	
-	if ((doc = xmlReadFile (filename, NULL, XML_PARSE_DTDVALID | XML_PARSE_NOCDATA)) == NULL) {
+	if (opt_verbose) {
+		read_options = XML_PARSE_DTDVALID;
+	}
+	
+	if ((doc = xmlReadFile (filename, NULL, read_options | XML_PARSE_NOCDATA)) == NULL) {
 		return (-1); /* Couldn't open file */
 	}
 	
@@ -925,7 +951,6 @@ int list_load (list_ *list, char *filename) {
 		return (-2); /* Invalid Listpatron file */
 	}
 
-	/* FIXME: title, author, etc are not required in the XML so NULL can be returned */
 	list_title_set(xml_get_element_content(doc, "/list/info/title"));
 	list->version = strdup(xml_get_element_content(doc, "/list/info/version"));
 	list->author = strdup(xml_get_element_content(doc, "/list/info/author"));
@@ -1663,6 +1688,73 @@ GtkWidget *ui_create_listtitle (void) {
 	return (eventbox);
 }
 
+void handle_cmdline_help() {
+	if (opt_verbose) {
+		printf ("\
+    _         _                     _    \n\
+ __| |___ _ _| |_   _ __  __ _ _ _ (_)__ \n\
+/ _` / _ \\ ' \\  _| | '_ \\/ _` | ' \\| / _|\n\
+\\__,_\\___/_||_\\__| | .__/\\__,_|_||_|_\\__|\n\
+                   |_|                   \n\
+\n");
+	}
+	printf ("\
+ListPatron, version %%VERSION. (C) F.Boender, 2004. GPL\n\
+Usage:  listpatron [option] file.lip\n\n\
+Options:\n\
+  -h, --help     Show this screen\n\
+  -b, --batch    Batch-mode (No GUI)\n\
+  -v, --version  Show versionumber\n\
+      --verbose  Be verbose, show lots-o-output\n");
+
+	exit(0);
+}
+
+void handle_cmdline (int argc, char *argv[]) {
+	struct option long_options[] = {
+		{"help"    , 0 , &opt_help    , 1}, 
+		{"batch"   , 0 , &opt_batch   , 1}, 
+		{"verbose" , 0 , &opt_verbose , 1}, 
+		{"version" , 0 , &opt_version , 1}, 
+		{0         , 0 , 0            , 0},
+	};
+	int c;
+
+	while (1) {
+		int option_index = 0;
+
+		c = getopt_long (argc, argv, "hbv", long_options, &option_index);
+
+		if (c == -1) {
+			break;
+		}
+		
+		switch (c) {
+			case 0:
+				if (long_options[option_index].flag != 0) {
+					break;
+				}
+				break;
+				
+			case 'h': opt_help = 1; break;
+			case 'b': opt_batch = 1; break;
+			case 'v': opt_version = 1; break;
+			case '?': opt_help = 1; break;
+
+			default: abort(); break;
+		}
+	}
+
+	if (opt_help) handle_cmdline_help();
+	if (opt_version) printf ("ListPatron, version %%VERSION. (C) F.Boender, 2004. GPL\n");
+
+	/* Remaining option (open as listpatron file) */
+	if (optind < argc)
+	{
+		list_load (list, argv[optind]);
+	}
+}
+
 /****************************************************************************
  * Main
  ****************************************************************************/
@@ -1673,12 +1765,13 @@ int main (int argc, char *argv[]) {
 	gtk_init (&argc, &argv);
 	g_type_init();
 
+	list = list_create();
+
 	win_main = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_default_size (GTK_WINDOW(win_main), 500, 400);
 	
 	vbox_main = gtk_vbox_new (FALSE, 2);
 
-	list = list_create();
 
 	win_scroll = gtk_scrolled_window_new (NULL, NULL);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(win_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -1691,9 +1784,14 @@ int main (int argc, char *argv[]) {
 
 	gtk_container_add (GTK_CONTAINER(win_main), vbox_main);
 
-	gtk_widget_show_all (win_main);
+	/* FIXME: Error dialogs occuring during handle_cmdline aren't shown */
+	handle_cmdline (argc, argv);
+
+	if (!opt_batch) {
+		gtk_widget_show_all (win_main);
 	
-	gtk_main();
+		gtk_main();
+	}
 	
 	return (0);
 }
