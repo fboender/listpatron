@@ -671,39 +671,34 @@ list_ *list_create(void) {
 }
 
 void list_clear(void) {
-	int response;
-
 	if (list != NULL) {
-		response = list_save_check(list);
-		if (response != -1) { /* Not cancelled */
-			GList *columns = NULL, *column_iter;
-			
-			/* Clear the data */
-			if (list->liststore != NULL) {
-				gtk_list_store_clear(list->liststore);
-			}
-			
-			/* Throw away columns in the treeview */
-			g_object_ref (treeview);
-			columns = gtk_tree_view_get_columns(treeview);
-			column_iter = columns;
-			while (column_iter != NULL) {
-				list_column_delete(list, GTK_TREE_VIEW_COLUMN(column_iter->data));
-				column_iter = column_iter->next;
-			}
-			g_list_free(columns);
-
-			/* Deep free list structure */
-			if (list->version != NULL) { free(list->version); }
-			if (list->title != NULL) { free(list->title); }
-			if (list->author != NULL) { free(list->author); }
-			if (list->description != NULL) { free(list->description); }
-			if (list->keywords != NULL) { free(list->keywords); }
-			if (list->filename != NULL) { free(list->filename); }
-
-			free (list);
-			list = NULL; /* FIXME: Does this reference the local or global var? */
+		GList *columns = NULL, *column_iter;
+		
+		/* Clear the data */
+		if (list->liststore != NULL) {
+			gtk_list_store_clear(list->liststore);
 		}
+		
+		/* Throw away columns in the treeview */
+		g_object_ref (treeview);
+		columns = gtk_tree_view_get_columns(treeview);
+		column_iter = columns;
+		while (column_iter != NULL) {
+			list_column_delete(list, GTK_TREE_VIEW_COLUMN(column_iter->data));
+			column_iter = column_iter->next;
+		}
+		g_list_free(columns);
+
+		/* Deep free list structure */
+		if (list->version != NULL) { free(list->version); }
+		if (list->title != NULL) { free(list->title); }
+		if (list->author != NULL) { free(list->author); }
+		if (list->description != NULL) { free(list->description); }
+		if (list->keywords != NULL) { free(list->keywords); }
+		if (list->filename != NULL) { free(list->filename); }
+
+		free (list);
+		list = NULL; /* FIXME: Does this reference the local or global var? */
 	} else {
 		gtk_statusbar_msg ("It's really empty. Don't worry");
 	}
@@ -1247,70 +1242,89 @@ void ui_menu_file_new_cb(void) {
 }
 
 /* File open */
-void ui_file_open_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
-	char *filename = NULL;
-	int err_nr;
-	
-	filename = (char *)gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs));
-	
-	if ((err_nr = list_load(list, filename)) != 0) {
-		switch (err_nr) {
-			case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
-			case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
-			default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
-		}
-	} else {
-		gtk_statusbar_msg("File '%s' loaded.", filename);
-	}
-}
+//void ui_file_open_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
+//	char *filename = NULL;
+//	int err_nr;
+//	
+//	filename = (char *)gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs));
+//	
+//	if ((err_nr = list_load(list, filename)) != 0) {
+//		switch (err_nr) {
+//			case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
+//			case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
+//			default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
+//		}
+//	} else {
+//		gtk_statusbar_msg("File '%s' loaded.", filename);
+//	}
+//}
 
 void ui_menu_file_open_cb(void) {
-	/* FIXME: Can't be canceled. Data is lossed anyway */
-	GtkWidget *win_file_open;
+	GtkWidget *dia_file_open;
 
-	list_clear();
-	list = list_create();
+	if (list_save_check(list) == -1) {
+		return;
+	}
+
+	dia_file_open = gtk_file_chooser_dialog_new(
+			"Open file",
+			GTK_WINDOW(win_main),
+			GTK_FILE_CHOOSER_ACTION_OPEN, 
+			NULL);
+	gtk_dialog_add_buttons(
+			GTK_DIALOG(dia_file_open),
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, 
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, 
+			NULL);
 	
-	win_file_open = gtk_file_selection_new("Open file");
-	/* FIXME: Use gtk_dialog_add_buttons and gtk_dialog_run */
-    g_signal_connect(
-			G_OBJECT(GTK_FILE_SELECTION(win_file_open)->ok_button),
-			"clicked", 
-			G_CALLBACK(ui_file_open_btn_ok_cb), 
-			(gpointer) win_file_open);
-    g_signal_connect_swapped(
-			G_OBJECT(GTK_FILE_SELECTION(win_file_open)->ok_button),
-			"clicked", 
-			G_CALLBACK(gtk_widget_destroy), 
-			G_OBJECT(win_file_open));
-    g_signal_connect_swapped(
-			G_OBJECT(GTK_FILE_SELECTION(win_file_open)->cancel_button),
-			"clicked", 
-			G_CALLBACK(gtk_widget_destroy), 
-			G_OBJECT(win_file_open));
-	
-	gtk_widget_show(win_file_open);
+	if (gtk_dialog_run(GTK_DIALOG(dia_file_open)) == GTK_RESPONSE_ACCEPT) {
+		char *filename = NULL;
+		int err_nr;
+		list_clear();
+		list = list_create();
+
+		filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_open)));
+
+		if ((err_nr = list_load(list, filename)) != 0) {
+			switch (err_nr) {
+				case -1: gtk_error_dialog("Couldn't open file '%s'.", filename); break;
+				case -2: gtk_error_dialog("Invalid listpatron file '%s'.", filename); break;
+				default: gtk_error_dialog("Unknown error while opening file '%s'.", filename); break;	
+			}
+		} else {
+			gtk_statusbar_msg("File '%s' loaded.", filename);
+			if (list->filename != NULL) {
+				free (list->filename);
+			}
+			list->filename = strdup(filename);
+		}
+		
+		free (filename);
+	}
+
+	gtk_widget_destroy(dia_file_open);
 }
 
 /* File import */
-void ui_file_import_csv_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
-	char *filename = NULL;
-	char *delimiter_string = NULL;
-	int rows = -1;
-	
-	filename = (char *)gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)); /* FIXME: Should this be freed? */
-	
-	delimiter_string = gtk_input_dialog("Enter a single character which delimits the fields in the file", ",");
-	if (delimiter_string != NULL) {
-		if (list_import_csv(list, filename, ',') == -1) {
-			gtk_error_dialog("Not a correct Comma Separated file '%s'", filename);
-		} else {
-			gtk_statusbar_msg("File %s imported. %i rows read.", filename, list->nr_of_rows, rows);
-		}
-
-		free(delimiter_string);
-	}
-}
+/* Unused */
+//void ui_file_import_csv_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
+//	char *filename = NULL;
+//	char *delimiter_string = NULL;
+//	int rows = -1;
+//	
+//	filename = (char *)gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)); /* FIXME: Should this be freed? */
+//	
+//	delimiter_string = gtk_input_dialog("Enter a single character which delimits the fields in the file", ",");
+//	if (delimiter_string != NULL) {
+//		if (list_import_csv(list, filename, ',') == -1) {
+//			gtk_error_dialog("Not a correct Comma Separated file '%s'", filename);
+//		} else {
+//			gtk_statusbar_msg("File %s imported. %i rows read.", filename, list->nr_of_rows, rows);
+//		}
+//
+//		free(delimiter_string);
+//	}
+//}
 
 void ui_file_import_delimiter_comma_cb(GtkWidget *radio, import_ *import) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio)) == 1) {
@@ -1909,8 +1923,7 @@ void handle_cmdline(int argc, char *argv[]) {
 	if (opt_version) printf("ListPatron, version %%VERSION. (C) F.Boender, 2004. GPL\n");
 
 	/* Remaining option (open as listpatron file) */
-	if (optind < argc)
-	{
+	if (optind < argc) {
 		list_load(list, argv[optind]);
 	}
 }
