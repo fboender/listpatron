@@ -98,6 +98,7 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column);
 void list_row_add_empty(list_ *list);
 void list_row_add(list_ *list, int nr_of_cols, char *values[]);
 list_ *list_create(void);
+void list_clear(void);
 int list_import_csv(list_ *list, char *filename, char delimiter);
 void ui_file_export_ps_portrait_cb(GtkWidget *radio, export_ *export);
 void ui_file_export_ps_landscape_cb(GtkWidget *radio, export_ *export);
@@ -669,7 +670,7 @@ list_ *list_create(void) {
 	return (list);
 }
 
-void list_clear(list_ *lst) {
+void list_clear(void) {
 	int response;
 
 	if (list != NULL) {
@@ -1241,8 +1242,7 @@ void ui_treeview_cursor_changed_cb(GtkTreeView *tv, gpointer user_data) {
 }
 
 void ui_menu_file_new_cb(void) {
-
-	list_clear (list);
+	list_clear ();
 	list = list_create();
 }
 
@@ -1265,8 +1265,12 @@ void ui_file_open_btn_ok_cb(GtkWidget *win, GtkFileSelection *fs) {
 }
 
 void ui_menu_file_open_cb(void) {
+	/* FIXME: Can't be canceled. Data is lossed anyway */
 	GtkWidget *win_file_open;
 
+	list_clear();
+	list = list_create();
+	
 	win_file_open = gtk_file_selection_new("Open file");
 	/* FIXME: Use gtk_dialog_add_buttons and gtk_dialog_run */
     g_signal_connect(
@@ -1366,6 +1370,8 @@ void ui_menu_file_import_csv_cb(void) {
 	gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER(dia_file_import), vbox);
 
 	if (gtk_dialog_run(GTK_DIALOG(dia_file_import)) == GTK_RESPONSE_ACCEPT) {
+		list_clear();
+		list = list_create();
 		import->filename = strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dia_file_import)));
 		list_import_csv(list, import->filename, import->delimiter);
 		free(import->filename);
