@@ -34,6 +34,8 @@
 #include <glib-object.h>
 #include <libxml/parser.h>
 
+#include "splash.h"
+
 #define _DEBUG
 #define _TEST_COLS 5
 #define _TEST_ROWS 50
@@ -79,6 +81,7 @@ void ui_menu_row_add_cb (void);
 void ui_menu_row_delete_cb (void);
 void ui_menu_debug_addtestdata_cb (void);
 void ui_menu_debug_addtestrows_cb (void);
+void ui_menu_help_about_cb (void);
 void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
 /* User interface creation functions */
 GtkWidget *ui_create_menubar (GtkWidget *window);
@@ -115,7 +118,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/Debug/Add test _rows", NULL, ui_menu_debug_addtestrows_cb, 0, "<Item>"                        },
 #endif
 	{ "/_Help"               , NULL, NULL                        , 0, "<LastBranch>"                  },
-	{ "/_Help/About"         , NULL, NULL                        , 0, "<Item>"                        },
+	{ "/_Help/About"         , NULL, ui_menu_help_about_cb       , 0, "<Item>"                        },
 };
 
 static gint ui_nmenu_items = sizeof (ui_menu_items) / sizeof (ui_menu_items[0]);
@@ -969,6 +972,58 @@ GtkWidget *ui_create_statusbar (GtkWidget *window) {
 	gtk_statusbar_msg ("Ready.");
 
 	return (sb_status);
+}
+void dialog_about_btn_ok_cb (GtkWidget *widget, GtkWidget *win) {
+	gtk_widget_destroy(win);
+}
+
+void ui_menu_help_about_cb (void) {
+	GtkWidget *win, *pixmapwid;
+	GdkPixmap *logo;
+	GtkStyle *style;
+	GtkWidget *label;
+	GtkWidget *vbox;
+	GtkWidget *frame;
+	GtkWidget *btn_ok;
+	GdkBitmap *mask;
+	
+	win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title (GTK_WINDOW(win), "About ListPatron");
+	gtk_widget_realize(win);
+
+	style = gtk_widget_get_style( win );
+    logo = gdk_pixmap_create_from_xpm_d(
+			win->window,  
+			&mask,
+			&style->bg[GTK_STATE_NORMAL],
+			(gchar **)splash_xpm );
+    pixmapwid = gtk_pixmap_new( logo, mask );
+    gtk_widget_show( pixmapwid );
+
+	frame = gtk_frame_new (NULL);
+	btn_ok = gtk_button_new_with_mnemonic ("_Whatever");
+	
+	label = gtk_label_new ("\nListPatron v%%VERSION\n\nCopyright, 2004, by Ferry Boender\n\n%%HOMEPAGE\nReleased under the GPL\n<%%EMAIL>");
+	vbox = gtk_vbox_new (FALSE, 0);
+	
+	gtk_signal_connect (
+			GTK_OBJECT(btn_ok),
+			"clicked",
+			GTK_SIGNAL_FUNC(dialog_about_btn_ok_cb),
+			win);
+
+	gtk_box_pack_start (GTK_BOX(vbox), pixmapwid, TRUE, TRUE, 5);
+	gtk_box_pack_start (GTK_BOX(vbox), label, TRUE, TRUE, 5);
+	gtk_box_pack_start (GTK_BOX(vbox), btn_ok, TRUE, TRUE, 5);
+	
+	gtk_container_set_border_width (GTK_CONTAINER(vbox), 10);
+
+	gtk_container_add (GTK_CONTAINER(frame), vbox);
+	gtk_container_set_border_width (GTK_CONTAINER(frame), 5);
+	gtk_container_add (GTK_CONTAINER(win), frame);
+
+	gtk_widget_show_all (win);
+
 }
 
 /****************************************************************************
