@@ -698,12 +698,60 @@ newpath\n\
 }
 
 int list_export_html (list_ *list, char *filename) {
+	char *row_colors[] = {"class=\"row_even\"", "class=\"row_odd\""};
 	FILE *f;
+	GList *columns = NULL, *column_iter = NULL;
+	GtkTreeIter iter;
+	gchar *row_data;
+	int row_even = 0;
+	int i;
 
 	if ((f = fopen (filename, "w")) == FALSE) {
 		return (-1);
 	}
 
+	fprintf (f, "\
+<html>\n\
+<head>\n\
+	<style>\n\
+		body { font-family: helvetica; font-size: 10px; }\n\
+		th { text-align: left; background-color: #000000; color: #FFFFFF; }\n\
+		tr.row_even { background-color: #F0F0F0; }\n\
+		tr.row_odd { background-color: #FFFFFF; }\n\
+	</style>\n\
+</head>\n\
+<body>\n\
+	<table>\n\
+		<tr>");
+	
+	/* Save column headers */
+	columns = gtk_tree_view_get_columns (list->treeview);
+	column_iter = columns;
+	while (column_iter) {
+		fprintf (f, "\t\t\t\t<th>%s</th>\n", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
+		column_iter = column_iter->next;
+	}
+	
+	fprintf (f, "\
+		</tr>\n");
+
+	/* Save row data */
+	row_even = 1;
+	gtk_tree_model_get_iter_root (GTK_TREE_MODEL(list->liststore), &iter);
+	do {
+		fprintf (f, "\t\t\t<tr %s>\n", row_colors[row_even]);
+		for (i = 0; i < list->nr_of_cols; i++) {
+			gtk_tree_model_get (GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
+			fprintf (f, "\t\t\t\t<td>%s</td>\n", row_data);
+			free (row_data);
+		}
+		fprintf (f, "\t\t\t</tr>\n");
+		row_even ^= 1;
+	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
+	
+	fprintf (f, "\
+	</body>\n\
+</html>\n");
 
 	fclose (f);
 
@@ -1521,7 +1569,7 @@ int main (int argc, char *argv[]) {
 	g_type_init();
 
 	win_main = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_default_size (GTK_WINDOW(win_main), 400, 200);
+	gtk_window_set_default_size (GTK_WINDOW(win_main), 500, 400);
 	
 	vbox_main = gtk_vbox_new (FALSE, 2);
 
