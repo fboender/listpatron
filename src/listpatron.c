@@ -33,8 +33,10 @@
 #include <getopt.h>
 #include <gtk/gtk.h>
 #include <glib-object.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 
 #include "listpatron.h"
+#include "stock.h"
 
 /* Libs */
 #include "debug.h"
@@ -465,6 +467,10 @@ void ui_menu_debug_addtestrows_cb(void) {
 	
 }
 
+void ui_menu_debug_dumpsortrules_cb(void) {
+	list_sort_dump_rules(list);
+}
+
 /* List *********************************************************************/
 void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data) {
 	GtkTreePath *path;
@@ -848,6 +854,8 @@ int main(int argc, char *argv[]) {
 
 	gtk_init(&argc, &argv);
 	g_type_init();
+
+	load_stock_icons();
 
 	list = list_create();
 
