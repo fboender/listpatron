@@ -7,7 +7,7 @@ FLAGS = -Wall -c -g
 
 main: listpatron
 	$(CC) -Wall -g listpatron.o $(LIBS) $(INCS) -o listpatron 
-listpatron:
+listpatron: listpatron.c
 	$(CC) $(FLAGS) $(INCS) listpatron.c
 
 clean:
