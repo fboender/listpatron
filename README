@@ -1,0 +1,88 @@
+ListPatron
+
+	Author   : Ferry Boender <f.boender AT electricmonk DOT nl> 
+	License  : General Public License (See COPYING file)
+	homepage : http://www.electricmonk.nl/index.php?page=ListPatron
+
+	ListPatron is a GTK2 application which keeps lists of things.
+
+Table of contents
+
+	1. About ListPatron
+	2. Installation
+	   2.1. Requirements
+	   2.2. Compiling
+	   2.3. Configuring
+	3. Feedback / Contributing.
+	4. Legal stuff
+
+1. About ListPatron
+
+	ListPatron is a GTK2 application which aids in the keeping of lists of
+	information like books, movies, todo's, addresses, etc. Lists are freely 
+	definable by the user and can be searched, sorted, exported
+	and (in the future) filtered. Reports can be created from information in
+	various formats. 
+
+2. Installation
+
+2.1. Requirements
+
+	In order to compile ListPatron, you will need:
+
+		* A C compiler (ListPatron was developed with gcc)
+		  Available at http://gcc.gnu.org/
+		* Gtk 2.4.6+ (developement headers)
+		  Available at http://www.gtk.org/
+		* Libxml2
+		  Available at http://xmlsoft.org/
+
+2.2. Compiling
+
+	To compile, follow these steps:
+		* Switch to the top-level directory. (The 'listpatron' directory where 
+		  you unpacked the archive)
+		* Run "./configure".
+		* Run "make"
+		* Run "make install"
+
+		ListPatron will be installed in the default directories (/usr/local/foo)
+		
+		To uninstall, run "make uninstall" 
+		
+		You can run ListPatron by running "/usr/local/bin/listpatron" or simply
+		"listpatron" if the directory is in your path.
+
+3. Feedback / Contributing.
+
+	Send your bugreports, feature requests, etc to Ferry Boender (E-mail 
+	address is at the top of this file or in the AUTHORS file) or enter them
+	in the bugtracker at http://projects.electricmonk.nl/ FIXME
+
+	If you are thinking about contributing code to this project, please
+	contact me. I'll set up CVS access so you can get the latest sources.
+	You may also want to mention what it is you want to work on. 
+	
+4. Legal stuff
+
+	ListPatron is Copyright by Ferry Boender, licensed under the General Public
+	License (GPL)
+
+	Copyright (C), 2004 by Ferry Boender
+
+	This program is free software; you can redistribute it and/or modify it
+	under the terms of the GNU General Public License as published by the Free
+	Software Foundation; either version 2 of the License, or (at your option)
+	any later version.
+
+	This program is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+	or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+	for more details.
+
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	675 Mass Ave, Cambridge, MA 02139, USA.
+
+	For more information, see the COPYING file supplied with this program.
+
