@@ -1,5 +1,5 @@
 DESTDIR=$(prefix)  # Debian controlled
-BIN=/usr/bin/
+BIN = /usr/bin/
 CC = gcc
 LIBS = `pkg-config --libs gtk+-2.0`
 INCS = `pkg-config --cflags gtk+-2.0`
@@ -9,6 +9,7 @@ main: listpatron
 	$(CC) -Wall -g listpatron.o $(LIBS) $(INCS) -o listpatron 
 listpatron:
 	$(CC) $(FLAGS) $(INCS) listpatron.c
+
 clean:
 	-rm lk
 	-rm *.o
