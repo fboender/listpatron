@@ -47,7 +47,7 @@ typedef struct list_ {
 int my_gtk_tree_view_get_column_nr (GtkTreeView *treeview, GtkTreeViewColumn *column);
 /* List handling functions */
 void list_column_add (list_ *list, char *title);
-void list_column_delete (list_ *list);
+void list_column_delete (list_ *list, GtkTreeViewColumn *column);
 void list_row_add_empty (list_ *list);
 void list_row_add (list_ *list, int nr_of_cols, char *values[]);
 list_ *list_create (void);
@@ -161,6 +161,7 @@ void list_column_add (list_ *list, char *title) {
 	int i;
 	
 	/* TreeView */
+	/* FIXME: Use list->nr_of_cols */
 	columns = gtk_tree_view_get_columns(list->treeview);
 	nr_of_cols = g_list_length(columns);
 	g_list_free (columns);
@@ -172,6 +173,8 @@ void list_column_add (list_ *list, char *title) {
 			renderer,
 			"text", nr_of_cols,
 			NULL);
+	g_object_set_data (G_OBJECT(col), "col_nr", GUINT_TO_POINTER(nr_of_cols));
+
 	g_signal_connect (renderer, "edited", (GCallback) ui_cell_edited_cb, NULL);
 
 	gtk_tree_view_column_set_resizable (GTK_TREE_VIEW_COLUMN(col), TRUE);
@@ -193,6 +196,7 @@ void list_column_add (list_ *list, char *title) {
 		types[i] = G_TYPE_STRING;
 	}
 	list->liststore = gtk_list_store_newv (nr_of_cols + 1, types);
+	free (types);
 
 	/* Copy data from previous liststore (if existed) and clean up old store */
 	if (liststore_old != NULL) {
@@ -214,7 +218,8 @@ void list_column_add (list_ *list, char *title) {
 			} while (gtk_tree_model_iter_next (GTK_TREE_MODEL(liststore_old), &iter_old));
 
 			/* Clean up old liststore */
-			/* FIXME: free old liststore */
+			gtk_list_store_clear (liststore_old);
+			
 		}
 	}
 
@@ -223,8 +228,90 @@ void list_column_add (list_ *list, char *title) {
 	list->nr_of_cols++;
 }
 
-void list_column_delete (list_ *list) {
-	;
+void list_column_delete (list_ *list, GtkTreeViewColumn *column) {
+	void *temp_col = NULL;
+	int liststore_remove_col_nr = -1;
+	GList *columns = NULL;
+
+	GType *types = NULL;
+	GtkListStore *liststore_old = NULL;
+	int i;
+
+	if (column == NULL) {
+		return;
+	}
+	
+	liststore_remove_col_nr = GPOINTER_TO_UINT(g_object_get_data (G_OBJECT(column), "col_nr"));
+
+	/* Treeview: Remove column and update other columns to compensate for 
+	 * shifting in liststore */
+	columns = gtk_tree_view_get_columns (list->treeview);
+	while (columns != NULL) {
+		int col_nr;
+
+		col_nr = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(columns->data), "col_nr"));
+
+		if (col_nr > liststore_remove_col_nr) { /* Shift columns to left */
+			GList *col_renderers = NULL;
+
+			col_renderers = gtk_tree_view_column_get_cell_renderers (columns->data);
+			gtk_tree_view_column_set_attributes (columns->data, col_renderers->data, "text", col_nr - 1, NULL);
+			gtk_tree_view_column_set_sort_column_id (columns->data, col_nr - 1);
+				
+			g_object_set_data(G_OBJECT(columns->data), "col_nr", GUINT_TO_POINTER(col_nr -1));
+			
+		}
+		columns = columns->next;
+	}
+	
+	gtk_tree_view_remove_column (list->treeview, column);
+		
+	/* Rewrite liststore from scratch because GTK won't allow us to remove 
+	 * columns */
+	/* Remember old liststore so we can copy data from it */
+	if (list->liststore != NULL) {
+		liststore_old = list->liststore;
+	}
+
+	if (list->nr_of_cols - 1 > 0) {
+		/* Create new liststore from scratch */
+		types = malloc(sizeof(GType) * (list->nr_of_cols - 1));
+		for (i = 0; i < (list->nr_of_cols - 1); i++) {
+			types[i] = G_TYPE_STRING;
+		}
+		list->liststore = gtk_list_store_newv (list->nr_of_cols - 1, types);
+		free (types);
+		
+		if (liststore_old != NULL) {
+			gchar *row_data;
+			GtkTreeIter iter_old;
+			GtkTreeIter iter;
+			
+			if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL(liststore_old), &iter_old)) {
+				do {
+					int col_counter = 0;
+
+					gtk_list_store_append (list->liststore, &iter);
+					
+					/* Copy old liststore to new liststore */
+					for (i = 0; i < list->nr_of_cols; i++) {
+						if (i != liststore_remove_col_nr) {
+							gtk_tree_model_get (GTK_TREE_MODEL(liststore_old), &iter_old, i, &row_data, -1);
+							gtk_list_store_set (list->liststore, &iter, col_counter, row_data, -1);
+							col_counter++;
+						}
+					}
+				} while (gtk_tree_model_iter_next (GTK_TREE_MODEL(liststore_old), &iter_old));
+
+				/* Clean up old liststore */
+				gtk_list_store_clear (liststore_old);
+			}
+		}
+		
+		gtk_tree_view_set_model (list->treeview, GTK_TREE_MODEL(list->liststore));
+	}
+
+	list->nr_of_cols--;
 }
 
 void list_row_add_empty (list_ *list) {
@@ -326,9 +413,7 @@ void ui_menu_column_delete_cb (void) {
 	
 	gtk_tree_view_get_cursor (list->treeview, &path, &column);
 
-	gtk_tree_view_remove_column (list->treeview, column);
-
-	list_column_delete (list);
+	list_column_delete (list, column);
 }
 
 /* List *********************************************************************/
@@ -341,8 +426,9 @@ void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *ne
 	
 	/* Get column number */
 	gtk_tree_view_get_cursor (list->treeview, &path, &column);
-	path = gtk_tree_path_new_from_string (path_string);
-	col = my_gtk_tree_view_get_column_nr (list->treeview, column);
+	col = GPOINTER_TO_UINT(g_object_get_data (G_OBJECT(column), "col_nr"));
+//	path = gtk_tree_path_new_from_string (path_string);
+//	col = my_gtk_tree_view_get_column_nr (list->treeview, column);
 	
 	/* Set new text */
 	gtk_tree_model_get_iter (GTK_TREE_MODEL(list->liststore), &iter, path);
@@ -394,7 +480,7 @@ int main (int argc, char *argv[]) {
 	list = list_create();
 
 	win_scroll = gtk_scrolled_window_new (NULL, NULL);
-	gtk_scrolled_window_set_policy (win_scroll, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(win_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add (GTK_CONTAINER(win_scroll), GTK_WIDGET(list->treeview));
 	
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(ui_create_menubar(win_main)), FALSE, TRUE, 0);
