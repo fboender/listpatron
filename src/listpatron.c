@@ -32,8 +32,9 @@
 #include <assert.h>
 #include <gtk/gtk.h>
 #include <glib-object.h>
+#include <libxml/parser.h>
 
-#define _DEBUG
+//#define _DEBUG
 
 /****************************************************************************/
 
@@ -53,8 +54,10 @@ void list_column_delete (list_ *list, GtkTreeViewColumn *column);
 void list_row_add_empty (list_ *list);
 void list_row_add (list_ *list, int nr_of_cols, char *values[]);
 list_ *list_create (void);
+int list_save (list_ *list, char *filename);
 /* Callback functions */
 void ui_menu_file_open_cb (void);
+void ui_menu_file_save_cb (void);
 void ui_menu_row_add_cb (void);
 void ui_menu_row_delete_cb (void);
 void ui_menu_column_add_cb (void);
@@ -72,7 +75,7 @@ static GtkItemFactoryEntry ui_menu_items[] = {
 	{ "/_File"          , NULL , NULL                     , 0 , "<Branch>"                         },
 	{ "/File/_New"      , NULL , list_column_add          , 0 , "<StockItem>"   , GTK_STOCK_NEW    },
 	{ "/File/_Open"     , NULL , ui_menu_file_open_cb     , 0 , "<StockItem>"   , GTK_STOCK_OPEN   },
-	{ "/File/_Save"     , NULL , NULL                     , 0 , "<StockItem>"   , GTK_STOCK_SAVE   },
+	{ "/File/_Save"     , NULL , ui_menu_file_save_cb     , 0 , "<StockItem>"   , GTK_STOCK_SAVE   },
 	{ "/File/Save _As"  , NULL , NULL                     , 0 , "<Item>"                           },
 	{ "/File/_Export"   , NULL , NULL                     , 0 , "<Item>"                           },
 	{ "/File/sep1"      , NULL , NULL                     , 0 , "<Separator>"                      },
@@ -362,6 +365,45 @@ list_ *list_create (void) {
 	return (list);
 }
 
+int list_save (list_ *list, char *filename) {
+	xmlDocPtr doc;
+	xmlNodePtr node_root, node_header, node_row;
+	GtkTreeIter iter;
+	gchar *row_data;
+	GList *columns = NULL, *column_iter = NULL;
+	int i;
+	
+	/* Create XML document */
+	doc = xmlNewDoc ("1.0");
+	node_root = xmlNewDocNode(doc, NULL, (const xmlChar *)"list", NULL);
+	xmlDocSetRootElement (doc, node_root);
+
+	/* Parse column information */
+	node_header = xmlNewChild (node_root, NULL, (const xmlChar *)"header", NULL);
+	
+	columns = gtk_tree_view_get_columns (list->treeview);
+	column_iter = columns;
+	while (column_iter) {
+		xmlNewChild(node_header, NULL, (const xmlChar *)"col", (char *)GTK_TREE_VIEW_COLUMN(column_iter->data)->title);
+		column_iter = column_iter->next;
+	}
+
+	/* Parse row information */
+	gtk_tree_model_get_iter_root (GTK_TREE_MODEL(list->liststore), &iter);
+	do {
+		node_row = xmlNewChild (node_root, NULL, (const xmlChar *)"row", NULL);
+		for (i = 0; i < list->nr_of_cols; i++) {
+			gtk_tree_model_get (GTK_TREE_MODEL(list->liststore), &iter, i, &row_data, -1);
+			xmlNewChild(node_row, NULL, (const xmlChar *)"col", row_data);
+			free (row_data);
+		}
+	} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(list->liststore), &iter));
+	
+	xmlSaveFormatFileEnc (filename, doc, "ISO-8859-1", 1);
+
+	return (0);
+}
+
 /****************************************************************************
  * Callbacks 
  ****************************************************************************/
@@ -385,6 +427,10 @@ void ui_menu_file_open_cb (void) {
 			G_OBJECT (win_file_open));
 	*/
 	gtk_widget_show (win_file_open);
+}
+
+void ui_menu_file_save_cb (void) {
+	list_save (list, "list");
 }
 
 void ui_menu_row_add_cb (void) {
@@ -551,6 +597,10 @@ int main (int argc, char *argv[]) {
 
 	gtk_container_add (GTK_CONTAINER(win_main), vbox_main);
 
+
+#ifdef _DEBUG
+	ui_menu_debug_addtestdata_cb();
+#endif
 	gtk_widget_show_all (win_main);
 	gtk_main();
 	
