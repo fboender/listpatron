@@ -46,6 +46,7 @@ void ui_menu_row_delete_cb(void);
 void ui_menu_debug_addtestdata_cb(void);
 void ui_menu_debug_addtestrows_cb(void);
 void ui_menu_debug_dumpsortrules_cb(void);
+void ui_menu_help_usage_cb(void);
 void ui_menu_help_about_cb(void);
 
 /* Various Callback functions */

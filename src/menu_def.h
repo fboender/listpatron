@@ -45,7 +45,8 @@ static GtkActionEntry entries[] = {
 #endif /* DEBUG */
 
 	{ "HelpMenu"      , NULL            , "_Help" }             , 
-	{ "About"         , NULL            , "_About"              , NULL         , "Add test data to an empty list"              , ui_menu_help_about_cb }   , 
+	{ "Usage"         , NULL            , "_Usage"              , NULL         , "Quick usage information"                      , ui_menu_help_usage_cb}           , 
+	{ "About"         , NULL            , "_About"              , NULL         , "About ListPatron"                             , ui_menu_help_about_cb }          , 
 };
 
 static const char *ui_description =
@@ -103,6 +104,7 @@ static const char *ui_description =
 "    </menu>"
 #endif /* DEBUG */
 "    <menu action='HelpMenu'>"
+"      <menuitem action='Usage'/>"
 "      <menuitem action='About'/>"
 "    </menu>"
 "  </menubar>"
