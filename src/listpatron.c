@@ -51,25 +51,25 @@ typedef struct list_ {
 /****************************************************************************
  * Prototyping
  ****************************************************************************/
-int my_gtk_tree_view_get_column_nr (GtkTreeView *treeview, GtkTreeViewColumn *column);
 /* List handling functions */
 void list_column_add (list_ *list, char *title);
 void list_column_delete (list_ *list, GtkTreeViewColumn *column);
 void list_row_add_empty (list_ *list);
 void list_row_add (list_ *list, int nr_of_cols, char *values[]);
 list_ *list_create (void);
+int list_load (list_ *list, char *filename);
 int list_save (list_ *list, char *filename);
 /* Callback functions */
 void ui_menu_file_open_cb (void);
 void ui_menu_file_save_cb (void);
-void ui_menu_row_add_cb (void);
-void ui_menu_row_delete_cb (void);
 void ui_menu_column_add_cb (void);
 void ui_menu_column_rename_cb (void);
 void ui_menu_column_delete_cb (void);
-void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
+void ui_menu_row_add_cb (void);
+void ui_menu_row_delete_cb (void);
 void ui_menu_debug_addtestdata_cb (void);
 void ui_menu_debug_addtestrows_cb (void);
+void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data);
 /* User interface creation functions */
 GtkWidget *ui_create_menubar (GtkWidget *window);
 
@@ -77,33 +77,33 @@ GtkWidget *ui_create_menubar (GtkWidget *window);
  * Data initializer
  ****************************************************************************/
 static GtkItemFactoryEntry ui_menu_items[] = {
-	{ "/_File"          , NULL , NULL                     , 0 , "<Branch>"                         },
-	{ "/File/_New"      , NULL , list_column_add          , 0 , "<StockItem>"   , GTK_STOCK_NEW    },
-	{ "/File/_Open"     , NULL , ui_menu_file_open_cb     , 0 , "<StockItem>"   , GTK_STOCK_OPEN   },
-	{ "/File/_Save"     , NULL , ui_menu_file_save_cb     , 0 , "<StockItem>"   , GTK_STOCK_SAVE   },
-	{ "/File/Save _As"  , NULL , NULL                     , 0 , "<Item>"                           },
-	{ "/File/_Export"   , NULL , NULL                     , 0 , "<Item>"                           },
-	{ "/File/sep1"      , NULL , NULL                     , 0 , "<Separator>"                      },
-	{ "/File/_Quit"     , NULL , gtk_main_quit            , 0 , "<StockItem>"   , GTK_STOCK_QUIT   },
-	{ "/_Edit"          , NULL , NULL                     , 0 , "<Branch>"                         },
-	{ "/Edit/Cu_t"      , NULL , NULL                     , 0 , "<StockItem>"   , GTK_STOCK_CUT    },
-	{ "/Edit/_Copy"     , NULL , NULL                     , 0 , "<StockItem>"   , GTK_STOCK_COPY   },
-	{ "/Edit/_Paste"    , NULL , NULL                     , 0 , "<StockItem>"   , GTK_STOCK_PASTE  },
-	{ "/Edit/sep1"      , NULL , NULL                     , 0 , "<Separator>"                      },
-	{ "/_Column"        , NULL , NULL                     , 0 , "<Branch>"                         },
-	{ "/Column/_Add"    , NULL , ui_menu_column_add_cb    , 0 , "<StockItem>"   , GTK_STOCK_ADD    },
-	{ "/Column/_Delete" , NULL , ui_menu_column_delete_cb , 0 , "<StockItem>"   , GTK_STOCK_DELETE },
-	{ "/Column/_Rename" , NULL , ui_menu_column_rename_cb , 0 , "<Item>"                           },
-	{ "/_Row"           , NULL , NULL                     , 0 , "<Branch>"                         },
-	{ "/Row/_Add"       , NULL , ui_menu_row_add_cb       , 0 , "<StockItem>"   , GTK_STOCK_ADD    },
-	{ "/Row/_Delete"    , NULL , ui_menu_row_delete_cb    , 0 , "<StockItem>"   , GTK_STOCK_DELETE },
+	{ "/_File"               , NULL, NULL                        , 0, "<Branch>"                      },
+	{ "/File/_New"           , NULL, list_column_add             , 0, "<StockItem>" , GTK_STOCK_NEW   },
+	{ "/File/_Open"          , NULL, ui_menu_file_open_cb        , 0, "<StockItem>" , GTK_STOCK_OPEN  },
+	{ "/File/_Save"          , NULL, ui_menu_file_save_cb        , 0, "<StockItem>" , GTK_STOCK_SAVE  },
+	{ "/File/Save _As"       , NULL, NULL                        , 0, "<Item>"                        },
+	{ "/File/_Export"        , NULL, NULL                        , 0, "<Item>"                        },
+	{ "/File/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
+	{ "/File/_Quit"          , NULL, gtk_main_quit               , 0, "<StockItem>" , GTK_STOCK_QUIT  },
+	{ "/_Edit"               , NULL, NULL                        , 0, "<Branch>"                      },
+	{ "/Edit/Cu_t"           , NULL, NULL                        , 0, "<StockItem>" , GTK_STOCK_CUT   },
+	{ "/Edit/_Copy"          , NULL, NULL                        , 0, "<StockItem>" , GTK_STOCK_COPY  },
+	{ "/Edit/_Paste"         , NULL, NULL                        , 0, "<StockItem>" , GTK_STOCK_PASTE },
+	{ "/Edit/sep1"           , NULL, NULL                        , 0, "<Separator>"                   },
+	{ "/_Column"             , NULL, NULL                        , 0, "<Branch>"                      },
+	{ "/Column/_Add"         , NULL, ui_menu_column_add_cb       , 0, "<StockItem>" , GTK_STOCK_ADD   },
+	{ "/Column/_Delete"      , NULL, ui_menu_column_delete_cb    , 0, "<StockItem>" , GTK_STOCK_DELETE},
+	{ "/Column/_Rename"      , NULL, ui_menu_column_rename_cb    , 0, "<Item>"                        },
+	{ "/_Row"                , NULL, NULL                        , 0, "<Branch>"                      },
+	{ "/Row/_Add"            , NULL, ui_menu_row_add_cb          , 0, "<StockItem>" , GTK_STOCK_ADD   },
+	{ "/Row/_Delete"         , NULL, ui_menu_row_delete_cb       , 0, "<StockItem>" , GTK_STOCK_DELETE},
 #ifdef _DEBUG
-	{ "/_Debug"         , NULL , NULL                     , 0 , "<Branch>"                         },
-	{ "/Debug/_Add test data"       , NULL , ui_menu_debug_addtestdata_cb       , 0 , "<Item>"     },
-	{ "/Debug/Add test _rows"       , NULL , ui_menu_debug_addtestrows_cb       , 0 , "<Item>"     },
+	{ "/_Debug"              , NULL, NULL                        , 0, "<Branch>"                      },
+	{ "/Debug/_Add test data", NULL, ui_menu_debug_addtestdata_cb, 0, "<Item>"                        },
+	{ "/Debug/Add test _rows", NULL, ui_menu_debug_addtestrows_cb, 0, "<Item>"                        },
 #endif
-	{ "/_Help"          , NULL , NULL                     , 0 , "<LastBranch>"                     },
-	{ "/_Help/About"    , NULL , NULL                     , 0 , "<Item>"                           },
+	{ "/_Help"               , NULL, NULL                        , 0, "<LastBranch>"                  },
+	{ "/_Help/About"         , NULL, NULL                        , 0, "<Item>"                        },
 };
 
 static gint ui_nmenu_items = sizeof (ui_menu_items) / sizeof (ui_menu_items[0]);
@@ -147,31 +147,10 @@ char *gtk_input_dialog (char *message, char *prefill) {
 	return (response);
 }
 
-int my_gtk_tree_view_get_column_nr (GtkTreeView *treeview, GtkTreeViewColumn *column) {
-	GList *columns, *list_iter;
-	int col, i;
-
-	/* Get column number */
-	columns = gtk_tree_view_get_columns (list->treeview);
-	list_iter = columns;
-	for (i = 0; i < g_list_length(columns); i++) {
-		if (list_iter->data == column) {
-			col = i; /* OPTIMIZE: No need to assign I to COL */
-			break;
-		}
-		list_iter = g_list_next (list_iter);
-	}
-	g_list_free (columns);
-
-	return (col);
-}
-		
 /****************************************************************************
  * List handling functions
  ****************************************************************************/
 void list_column_add (list_ *list, char *title) {
-	GList *columns = NULL;
-	int nr_of_cols = 0;
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *col;
 	GType *types = NULL;
@@ -179,25 +158,20 @@ void list_column_add (list_ *list, char *title) {
 	int i;
 	
 	/* TreeView */
-	/* FIXME: Use list->nr_of_cols */
-	columns = gtk_tree_view_get_columns(list->treeview);
-	nr_of_cols = g_list_length(columns);
-	g_list_free (columns);
-	
 	renderer = gtk_cell_renderer_text_new();
 	g_object_set(renderer, "editable", TRUE, NULL);
 	col = gtk_tree_view_column_new_with_attributes(
 			title, 
 			renderer,
-			"text", nr_of_cols,
+			"text", list->nr_of_cols,
 			NULL);
-	g_object_set_data (G_OBJECT(col), "col_nr", GUINT_TO_POINTER(nr_of_cols));
+	g_object_set_data (G_OBJECT(col), "col_nr", GUINT_TO_POINTER(list->nr_of_cols));
 
 	g_signal_connect (renderer, "edited", (GCallback) ui_cell_edited_cb, NULL);
 
 	gtk_tree_view_column_set_resizable (GTK_TREE_VIEW_COLUMN(col), TRUE);
 	gtk_tree_view_column_set_reorderable (GTK_TREE_VIEW_COLUMN(col), TRUE);
-	gtk_tree_view_column_set_sort_column_id (GTK_TREE_VIEW_COLUMN(col), nr_of_cols);
+	gtk_tree_view_column_set_sort_column_id (GTK_TREE_VIEW_COLUMN(col), list->nr_of_cols);
 
 	gtk_tree_view_append_column (list->treeview, col);
 
@@ -209,11 +183,11 @@ void list_column_add (list_ *list, char *title) {
 	}
 	
 	/* Create new liststore from scratch */
-	types = malloc(sizeof(GType) * (nr_of_cols + 1));
-	for (i = 0; i < (nr_of_cols + 1); i++) {
+	types = malloc(sizeof(GType) * (list->nr_of_cols + 1));
+	for (i = 0; i < (list->nr_of_cols + 1); i++) {
 		types[i] = G_TYPE_STRING;
 	}
-	list->liststore = gtk_list_store_newv (nr_of_cols + 1, types);
+	list->liststore = gtk_list_store_newv (list->nr_of_cols + 1, types);
 	free (types);
 
 	/* Copy data from previous liststore (if existed) and clean up old store */
@@ -227,12 +201,12 @@ void list_column_add (list_ *list, char *title) {
 				gtk_list_store_append (list->liststore, &iter);
 				
 				/* Copy old liststore to new liststore */
-				for (i = 0; i < nr_of_cols; i++) {
+				for (i = 0; i < list->nr_of_cols; i++) {
 					gtk_tree_model_get (GTK_TREE_MODEL(liststore_old), &iter_old, i, &row_data, -1);
 					gtk_list_store_set (list->liststore, &iter, i, row_data, -1);
 					
 				}
-				gtk_list_store_set (list->liststore, &iter, nr_of_cols, "", -1);
+				gtk_list_store_set (list->liststore, &iter, list->nr_of_cols, "", -1);
 			} while (gtk_tree_model_iter_next (GTK_TREE_MODEL(liststore_old), &iter_old));
 
 			/* Clean up old liststore */
@@ -249,7 +223,6 @@ void list_column_add (list_ *list, char *title) {
 void list_column_delete (list_ *list, GtkTreeViewColumn *column) {
 	int liststore_remove_col_nr = -1;
 	GList *columns = NULL;
-
 	GType *types = NULL;
 	GtkListStore *liststore_old = NULL;
 	int i;
@@ -472,32 +445,11 @@ int list_save (list_ *list, char *filename) {
 
 /* Menu *********************************************************************/
 void ui_menu_file_open_cb (void) {
-//		GtkWidget *win_file_open;
-
-		list_load (list, "list");
-//	win_file_open = gtk_file_selection_new ("Open file");
-	
-	/* FIXME: Implement 
-    g_signal_connect (
-			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->ok_button),
-			"clicked", 
-			G_CALLBACK (ui_file_open_btn_ok_cb), 
-			(gpointer) win_file_open);
-    g_signal_connect_swapped (
-			G_OBJECT (GTK_FILE_SELECTION (win_file_open)->cancel_button),
-			"clicked", 
-			G_CALLBACK (gtk_widget_destroy), 
-			G_OBJECT (win_file_open));
-	*/
-//	gtk_widget_show (win_file_open);
+	list_load (list, "list");
 }
 
 void ui_menu_file_save_cb (void) {
 	list_save (list, "list");
-}
-
-void ui_menu_row_add_cb (void) {
-	list_row_add_empty (list);
 }
 
 void ui_menu_column_add_cb (void) {
@@ -515,7 +467,6 @@ void ui_menu_column_rename_cb (void) {
 	GtkTreePath *path;
 	GtkTreeViewColumn *column;
 	
-	
 	column_name = gtk_input_dialog ("Enter the column name", "Col");
 	if (column_name) {
 		gtk_tree_view_get_cursor (list->treeview, &path, &column);
@@ -532,6 +483,11 @@ void ui_menu_column_delete_cb (void) {
 
 	list_column_delete (list, column);
 }
+
+void ui_menu_row_add_cb (void) {
+	list_row_add_empty (list);
+}
+
 
 void ui_menu_row_delete_cb (void) {
 	GtkTreePath *path;
@@ -639,8 +595,6 @@ void ui_cell_edited_cb (GtkCellRendererText *cell, gchar *path_string, gchar *ne
 	/* Get column number */
 	gtk_tree_view_get_cursor (list->treeview, &path, &column);
 	col = GPOINTER_TO_UINT(g_object_get_data (G_OBJECT(column), "col_nr"));
-//	path = gtk_tree_path_new_from_string (path_string);
-//	col = my_gtk_tree_view_get_column_nr (list->treeview, column);
 	
 	/* Set new text */
 	gtk_tree_model_get_iter (GTK_TREE_MODEL(list->liststore), &iter, path);
@@ -699,11 +653,6 @@ int main (int argc, char *argv[]) {
 	gtk_box_pack_start (GTK_BOX(vbox_main), GTK_WIDGET(win_scroll), TRUE, TRUE, 0);
 
 	gtk_container_add (GTK_CONTAINER(win_main), vbox_main);
-
-
-#ifdef _DEBUG
-//	ui_menu_debug_addtestdata_cb();
-#endif
 
 	gtk_widget_show_all (win_main);
 	gtk_main();
