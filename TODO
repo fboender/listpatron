@@ -11,4 +11,15 @@ Small things that need to be taken care of but which I'm going to forget about
     - Start listpatron.
 	- Save the list.
 	- Error occurs.
+* Following error:
+  (listpatron:2183): GLib-GObject-CRITICAL **: file gobject.c: line 1642 (g_object_get_data): assertion `G_IS_OBJECT (object)' failed
+  ** (listpatron:2183): WARNING **: Invalid UTF8 string passed to pango_layout_set_text()
+
+  Reproduction:
+  - Open testdata/Boeken-ext.lsp
+  - Edit the sorting rules
+  - Open the properties dialog for a sorting rule
+  - Rename it to the same name as another sorting rule
+  - Press OK.
+  - Repeat the rename and ok step until the error occurs (somewhat intermittent)
 
