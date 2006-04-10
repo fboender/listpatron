@@ -19,6 +19,33 @@
 #define ORIENT_PORTRAIT 0
 #define ORIENT_LANDSCAPE 1
 
+/* Filter predicates */
+/* See also ui_filter.c:ui_filter_ok_cb() */
+#define IS               0
+#define IS_NOT           1
+#define CONTAINS         2
+#define DOES_NOT_CONTAIN 3
+#define LARGER_THAN      4
+#define SMALLER_THAN     5
+#define REGULAR_EXP      6
+
+/* Filter operators */
+#define AND 0
+#define OR  1
+
+typedef struct filter_predicate_ {
+	char *col_name; /* FIXME: Redundant data (col_nr)? */
+	int col_nr; /* FIXME: Redundant data (col_name)? */
+	int predicate; 
+	char *value; /* Value to match */
+	int bin_operator; /* AND / OR */
+} filter_predicate_;
+
+typedef struct filter_ {
+	char *name;
+	GArray *predicates; /* filter_predicate_* */
+} filter_;
+
 typedef struct sort_col_ {
 	char *col_name;
 	int col_nr;
@@ -49,8 +76,12 @@ typedef struct list_ {
 	GArray *columns; /* Column titles (char *) */
 	
 	sort_col_ sort_single; /* Sorting on a single column (when user presses a col header */
+	/* FIXME: Why doesn't the currently active sort just use a sort_? */
 	GArray *sort_active; /* Currenly active user-defined sorting rule (sort_col_ *) */
 	GArray *sorts;       /* Array of all user-defined sorting rules (sort_ *) */
+
+	filter_ filter_active; /* Currently active filter */
+	GArray *filters;       /* Array of all user-defined filtering rules (filter_ *) */
 	
 	int nr_of_cols;
 	int nr_of_rows;
@@ -65,6 +96,11 @@ typedef struct find_ {/*  Move to listpatron.c */
 	int matchcase;
 	int matchfull;
 } find_;
+
+void list_filter_dump_rules(list_ *list);
+filter_ *list_filter_getrule(list_ *list, char *name);
+void list_filter_add(list_ *list, char *old_name, char *name, GArray *predicates);
+void list_filter_remove(list_ *list, char *name);
 
 /* Convenience function which, when called, will dump the sorting rules in
  * 'list'.

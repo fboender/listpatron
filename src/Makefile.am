@@ -4,16 +4,17 @@ CPPFLAGS = \
 	-g \
 	@GTK_CFLAGS@ \
 	@XML_CPPFLAGS@ \
-	-DDATADIR=\"$(datadir)\"
+	-DDATADIR=\"$(datadir)\" \
+	-Wall
 
 bin_PROGRAMS = listpatron
 listpatron_SOURCES = debug.c libgtkext.c libxmlext.c list.c listpatron.c \
                      stock.c ui_export.c ui_find.c ui_import.c ui_rulelist.c \
-					 ui_sort.c
+					 ui_sort.c ui_filter.c
 
 noinst_HEADERS = debug.h libgtkext.h libxmlext.h list.h listpatron.h \
                  stock.h ui_export.h ui_find.h ui_import.h ui_rulelist.h \
-				 ui_sort.h menu_def.h splash.h
+				 ui_sort.h menu_def.h splash.h ui_filter.h
 
 # man page
 #man_MANS = gdu.1x

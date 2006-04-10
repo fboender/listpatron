@@ -57,6 +57,7 @@ void ui_rulelist_new(GtkButton *button, struct ui_rulelist_ *ui_rulelist) {
 	ui_rulelist->new_func();
 	ui_rulelist_populate(ui_rulelist);
 }
+
 void ui_rulelist_edit(GtkButton *button, struct ui_rulelist_ *ui_rulelist) {
 	ui_rulelist->edit_func(ui_rulelist->rule_name);
 	ui_rulelist_populate(ui_rulelist);
@@ -84,7 +85,7 @@ void ui_rulelist_selection_changed_cb(
 		/* Get the selected rule's name for possible editing/deletion */
 		gtk_tree_model_get(GTK_TREE_MODEL(ui_rulelist->ls_rulelist), &iter, 0, &rule_name, -1);
 		
-		if (ui_rulelist->rule_name == NULL) {
+		if (ui_rulelist->rule_name != NULL) { /* NOTICE: This used to say == NULL, but that seemed wrong? */
 			free(ui_rulelist->rule_name);
 		}
 		ui_rulelist->rule_name = strdup(rule_name);

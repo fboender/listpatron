@@ -15,3 +15,10 @@ Small things that need to be taken care of but which I'm going to forget about
 * Saving a list without rows results in:
   (listpatron:16668): Gtk-CRITICAL **: file gtktreemodel.c: line 1001 (gtk_tree_model_get_iter_first): assertion `GTK_IS_TREE_MODEL (tree_model)' failed
   Non-critical bug; As far as I know doesn't cause any real problems
+* $(prefix) (gnu autotools). Fix.
+	23:48 < muntyan> todsah: it's allright
+	23:48 < muntyan> it seems
+	23:49 < muntyan> yes, i reconfigured without distclean, and it used cached locations
+	23:49 < todsah> ah okay.
+	23:49 < muntyan> todsah: it's because you didn't put DATADIR to config.h
+

@@ -35,6 +35,8 @@ static GtkActionEntry entries[] = {
 	{ "SortEdit"      , NULL            , "_Edit sorting rules"  , NULL         , "Add, change and delete sorting rules"        , ui_menu_sort_rules_cb } , 
 	{ "SortNew"       , NULL            , "_New sorting rule"    , NULL         , "Add a sorting rule"                          , ui_menu_sort_edit_cb }           , 
 	{ "FilterMenu"    , NULL            , "_Filter" }            , 
+	{ "FilterEdit"    , NULL            , "_Edit filtering rules", NULL         , "Add, change and delete filtering rules"      , ui_menu_filter_rules_cb }        , 
+	{ "FilterNew"     , NULL            , "_New filtering rule"  , NULL         , "Add a filtering rule"                        , ui_menu_filter_edit_cb }         , 
 	{ "ReportMenu"    , NULL            , "_Report" }            , 
 
 #ifdef DEBUG
@@ -42,6 +44,7 @@ static GtkActionEntry entries[] = {
 	{ "AddTestData"   , NULL            , "Add test _data"       , NULL         , "Add test data to an empty list"              , ui_menu_debug_addtestdata_cb }   , 
 	{ "AddTestRows"   , NULL            , "Add test _rows"       , NULL         , "Add test rows to a testdata list"            , ui_menu_debug_addtestrows_cb }   , 
 	{ "DumpSortRules" , NULL            , "Dump _sorting rules"  , NULL         , "Dump the available sorting rules"            , ui_menu_debug_dumpsortrules_cb } ,
+	{ "DumpFilterRules",NULL            , "Dump _filtering rules"  , NULL         , "Dump the available filtering rules"        , ui_menu_debug_dumpfilterrules_cb } ,
 #endif /* DEBUG */
 
 	{ "HelpMenu"      , NULL            , "_Help" }             , 
@@ -91,6 +94,9 @@ static const char *ui_description =
 "        <separator/>"
 "      </menu>"
 "      <menu action='FilterMenu'>"
+"        <menuitem action='FilterEdit'/>"
+"        <menuitem action='FilterNew'/>"
+"        <separator/>"
 "      </menu>"
 "      <menu action='ReportMenu'>"
 "      </menu>"
@@ -101,6 +107,7 @@ static const char *ui_description =
 "      <menuitem action='AddTestRows'/>"
 "      <separator/>"
 "      <menuitem action='DumpSortRules'/>"
+"      <menuitem action='DumpFilterRules'/>"
 "    </menu>"
 #endif /* DEBUG */
 "    <menu action='HelpMenu'>"

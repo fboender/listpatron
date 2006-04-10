@@ -54,6 +54,7 @@
 #include "ui_export.h"
 #include "ui_rulelist.h"
 #include "ui_sort.h"
+#include "ui_filter.h"
 
 GtkWidget *win_main;
 GtkWidget *lbl_listtitle;
@@ -61,6 +62,7 @@ guint sb_context_id;
 GtkWidget *sb_status;
 GtkTreeView *treeview;
 int merge_id_sorts;
+int merge_id_filters;
 
 /* Menu stuff (global because of dynamic menu's */
 GtkActionGroup *action_group;
@@ -303,6 +305,25 @@ void ui_menu_sort_edit_cb(void) {
 	ui_sort_rule_edit(NULL);
 }
 
+void ui_menu_filter_rules_cb(void) {
+	ui_rulelist(
+			"Edit filtering rules", 
+			"Filtering rule",
+			list->filters,
+			ui_filter_new,
+			ui_filter_edit,
+			ui_filter_delete);
+	ui_create_menu_filterrules(list->filters);
+}
+
+void ui_menu_filter_edit_cb(void) {
+	ui_filter_rule_edit(NULL);
+}
+
+void ui_menu_filter_rule_activate_cb(GtkAction *action, char *filter_rule) {
+}
+
+
 void ui_menu_column_add_cb(void) {
 	char *column_name = NULL;
 	
@@ -514,6 +535,10 @@ void ui_menu_debug_dumpsortrules_cb(void) {
 	list_sort_dump_rules(list);
 }
 
+void ui_menu_debug_dumpfilterrules_cb(void) {
+	list_filter_dump_rules(list);
+}
+
 /* List *********************************************************************/
 void ui_cell_edited_cb(GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer *data) {
 	GtkTreePath *path;
@@ -587,20 +612,12 @@ void ui_menu_help_usage_cb(void) {
 	GtkWidget *vbox;
 	GtkWidget *frame;
 	GtkWidget *btn_ok;
-	GdkBitmap *mask;
 	
 	win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(win), "Usage");
 	gtk_widget_realize(win);
 
 	style = gtk_widget_get_style( win );
-//    logo = gdk_pixmap_create_from_xpm_d(
-//			win->window,  
-//			&mask,
-//			&style->bg[GTK_STATE_NORMAL],
-//			(gchar **)splash_xpm );
-//    pixmapwid = gtk_pixmap_new( logo, mask );
-//    gtk_widget_show( pixmapwid );
 
 	frame = gtk_frame_new(NULL);
 	btn_ok = gtk_button_new_with_mnemonic("_Ok");
@@ -831,7 +848,7 @@ void ui_menu_sort_rule_activate_cb(GtkAction *action, char *sort_rule) {
 	while (col_iter != NULL) {
 		int col_nr;
 		int col_sort_dir;
-		sort_col_ *sort_col;
+		sort_col_ *sort_col = NULL;
 		int i;
 		
 		col_nr = GPOINTER_TO_UINT(
@@ -903,6 +920,52 @@ void ui_create_menu_sortrules(GArray *rules) {
 				ui_manager,
 				merge_id_sorts,
 				"/MainMenu/DataMenu/SortMenu",
+				action_name,
+				action_name,
+				GTK_UI_MANAGER_MENUITEM,
+				FALSE);
+	}
+}
+
+void ui_create_menu_filterrules(GArray *rules) {
+	int i;
+
+	assert(rules != NULL);
+	
+	/* Remove old sorting rules */
+	gtk_ui_manager_remove_ui(ui_manager, merge_id_filters);
+
+	merge_id_filters = gtk_ui_manager_new_merge_id(ui_manager);
+
+	/* Populate the sort rules list menu with rules */
+	for (i = 0; i < rules->len; i++) {
+		rule_ *rule;
+		GtkAction *action;
+		char *action_name = malloc(sizeof(char) * (8 + 20));
+
+		rule = g_array_index(rules, rule_ *, i);
+		
+		sprintf(action_name, "FilterRule%i", i);
+
+		action = gtk_action_new(
+				action_name,
+				rule->name,
+				"Filter by this rule",
+				NULL);
+		g_signal_connect(
+				action,
+				"activate",
+				GTK_SIGNAL_FUNC(ui_menu_filter_rule_activate_cb),
+				rule->name);
+
+		gtk_action_group_add_action(
+				action_group,
+				action);
+
+		gtk_ui_manager_add_ui(
+				ui_manager,
+				merge_id_filters,
+				"/MainMenu/DataMenu/FilterMenu",
 				action_name,
 				action_name,
 				GTK_UI_MANAGER_MENUITEM,
@@ -1000,7 +1063,7 @@ int main(int argc, char *argv[]) {
 	/* FIXME: Error dialogs occuring during handle_cmdline aren't shown */
 	handle_cmdline(argc, argv);
 
-	ui_create_menu_sortrules(list->sorts);
+	ui_create_menu_filterrules(list->filters);
 
 	if (!opt_batch) {
 		gtk_widget_show_all(win_main);

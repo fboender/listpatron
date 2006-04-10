@@ -27,6 +27,9 @@ void debug_msg(int dbg_type, char *file, int line, char *fmt, ...);
 void ui_menu_sort_rules_cb(void);
 void ui_menu_sort_edit_cb(void);
 
+void ui_menu_filter_rules_cb(void);
+void ui_menu_filter_edit_cb(void);
+
 /* Menu callback functions */
 void ui_menu_file_new_cb(void);
 void ui_menu_file_import_csv_cb(void);
@@ -46,6 +49,7 @@ void ui_menu_row_delete_cb(void);
 void ui_menu_debug_addtestdata_cb(void);
 void ui_menu_debug_addtestrows_cb(void);
 void ui_menu_debug_dumpsortrules_cb(void);
+void ui_menu_debug_dumpfilterrules_cb(void);
 void ui_menu_help_usage_cb(void);
 void ui_menu_help_about_cb(void);
 
@@ -57,6 +61,7 @@ void ui_treeview_columns_changed_cb(GtkTreeView *treeview, gpointer *data);
 
 /* User interface creation functions */
 void ui_create_menu_sortrules(GArray *rules);
+void ui_create_menu_filterrules(GArray *rules);
 GtkWidget *ui_create_menubar(GtkWidget *window);
 
 #endif

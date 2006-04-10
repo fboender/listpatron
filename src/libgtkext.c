@@ -165,4 +165,37 @@ void gtk_statusbar_msg(char *fmt, ...) {
 	free(msg);
 }
 
+/* FIXME: Document returned value must be freed */
+char *gtk_combo_box_get_active_string(GtkComboBox *cmb) {
+	char *path_string = NULL;
+	GtkTreeModel *model = NULL;
+	int model_active = -1;
+	GtkTreeIter iter;
+	char *value = NULL;
 
+	if (cmb == NULL) {
+		return(NULL);
+	}
+	
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(cmb));
+
+	if (!model) {
+		return(NULL);
+	}
+
+	model_active = gtk_combo_box_get_active(GTK_COMBO_BOX(cmb));
+	if (model_active != -1) {
+		path_string = malloc(sizeof(char) * 10);
+
+		sprintf(path_string, "%i", gtk_combo_box_get_active(GTK_COMBO_BOX(cmb)));
+		gtk_tree_model_get_iter_from_string(model, &iter, path_string);
+
+		free(path_string);
+		
+		gtk_tree_model_get(model, &iter, 0, &value, -1);
+		
+		return(value);
+	} else {
+		return(NULL);
+	}
+}

@@ -39,18 +39,150 @@ extern int opt_batch;
 extern int opt_verbose;
 extern int opt_version;
 
+void list_filter_dump_rules(list_ *list) {
+	int i;
+
+	for (i = 0; i < list->filters->len; i++) {
+		filter_ *filter = NULL;
+		int i_pred;
+
+		filter = g_array_index(list->filters, filter_ *, i);
+
+		printf("filter->name=\"%s\"\n", filter->name);
+
+		for (i_pred = 0; i_pred < filter->predicates->len; i_pred++) {
+			filter_predicate_ *filter_predicate = g_array_index(filter->predicates, filter_predicate_ *, i_pred);
+
+			printf("\t%s(%i) %i %s %i\n", 
+					filter_predicate->col_name,
+					filter_predicate->col_nr,
+					filter_predicate->predicate,
+					filter_predicate->value,
+					filter_predicate->bin_operator);
+
+		}
+	}
+	printf("------------------------------------------------\n");
+}
+
+filter_ *list_filter_getrule(list_ *list, char *name) {
+	int i;
+
+	for (i = 0; i < list->filters->len; i++) {
+		filter_ *filter = NULL;
+
+		filter = g_array_index(list->filters, filter_ *, i);
+
+		if (strcmp(filter->name, name) == 0) {
+			return(filter);
+		}
+	}
+
+	return(NULL); /* No such filter */
+}
+
+void list_filter_add(list_ *list, char *old_name, char *name, GArray *predicates) {
+	int i;
+	filter_ *filter = NULL;
+
+	assert(name != NULL);
+	assert(predicates != NULL);
+
+	/* Stop duplicate filtering rules from being added */
+	if (old_name != NULL && strcmp(old_name, name) != 0) {
+		assert(list_filter_getrule(list, name) == NULL);
+	}
+	
+	if (old_name != NULL) {
+		/* Find old filtering rule and deep free it */
+		/* FIXME: Can't this be done with list_filter_get_rule? */
+		for (i = 0; i < list->filters->len; i++) {
+			filter_ *dup_filter = NULL;
+
+			dup_filter = g_array_index(list->filters, filter_ *, i);
+			if (strcmp(dup_filter->name, old_name) == 0) {
+				int i_pred;
+				
+				free(dup_filter->name);
+				
+				for (i_pred = 0; i_pred < dup_filter->predicates->len; i_pred++) {
+					filter_predicate_ *filter_predicate = NULL;
+					
+					filter_predicate = g_array_index(dup_filter->predicates, filter_predicate_ *, i_pred);
+
+					free(filter_predicate->col_name);
+					free(filter_predicate->value);
+				}
+
+				g_array_free(dup_filter->predicates, TRUE);
+				filter = dup_filter;
+			}
+		}
+	}
+	
+	if (filter == NULL) {
+		/* New rule or old rule not found */
+		filter = malloc(sizeof(filter_));
+		g_array_append_val(list->filters, filter);
+	}
+
+	filter->name = strdup(name);
+	filter->predicates = predicates;
+
+	list->modified = TRUE;
+
+}
+
+void list_filter_remove(list_ *list, char *name) {
+	int i;
+
+	assert(name != NULL);
+
+	/* Find filtering rule and deep free it */
+	for (i = 0; i < list->filters->len; i++) {
+		filter_ *filter = NULL;
+
+		filter = g_array_index(list->filters, filter_ *, i);
+
+		if (strcmp(filter->name, name) == 0) { /* Remove this filter? */
+			int i_pred;
+			
+			/* Deep fry^Wfree predicates */
+			for (i_pred = 0; i_pred < filter->predicates->len; i_pred++) {
+				filter_predicate_ *filter_predicate = NULL;
+				
+				filter_predicate = g_array_index(filter->predicates, filter_predicate_ *, i_pred);
+
+				free(filter_predicate->col_name);
+				free(filter_predicate->value);
+			}
+
+			g_array_free(filter->predicates, TRUE);
+			free(filter->name);
+			g_array_remove_index(list->sorts, i);
+
+			break;
+		}
+	}
+	
+	list->modified = TRUE;
+}
+
 void list_sort_dump_rules(list_ *list) {
 	int i;
 	int i_col;
 
 	for (i = 0; i < list->sorts->len; i++) {
-		sort_ *sort;
+		sort_ *sort = NULL;
 
 		sort = g_array_index(list->sorts, sort_ *, i);
 		printf("sort->name=\"%s\"\n", sort->name);
 
 		for (i_col = 0; i_col < sort->columns->len; i_col++) {
-			sort_col_ *sort_col = g_array_index(sort->columns, sort_col_ *, i_col);
+			sort_col_ *sort_col = NULL;
+			
+			sort_col = g_array_index(sort->columns, sort_col_ *, i_col);
+
 			printf("\tcolumns[%i]-> col_nr=\"%i\", sort_order=\"%i\", col_name=\"%s\", \n", 
 					i_col, 
 					sort_col->col_nr,
@@ -67,7 +199,7 @@ sort_ *list_sort_getrule(list_ *list, char *name) {
 	assert(name != NULL);
 
 	for (i = 0; i < list->sorts->len; i++) {
-		sort_ *sort;
+		sort_ *sort = NULL;
 
 		sort = g_array_index(list->sorts, sort_ *, i); 
 		
@@ -94,7 +226,7 @@ void list_sort_add(list_ *list, char *old_name, char *name, GArray *columns) {
 	if (old_name != NULL) {
 		/* Find old sorting rule and deep free it */
 		for (i = 0; i < list->sorts->len; i++) {
-			sort_ *dup_sort;
+			sort_ *dup_sort = NULL;
 
 			dup_sort = g_array_index(list->sorts, sort_ *, i);
 			if (strcmp(dup_sort->name, old_name) == 0) {
@@ -103,7 +235,9 @@ void list_sort_add(list_ *list, char *old_name, char *name, GArray *columns) {
 				free(dup_sort->name);
 				
 				for (i_col = 0; i_col < dup_sort->columns->len; i_col++) {
-					sort_col_ *sort_col = g_array_index(dup_sort->columns, sort_col_ *, i_col);
+					sort_col_ *sort_col = NULL;
+					
+					sort_col = g_array_index(dup_sort->columns, sort_col_ *, i_col);
 
 					free(sort_col->col_name);
 					free(sort_col);
@@ -129,8 +263,11 @@ void list_sort_add(list_ *list, char *old_name, char *name, GArray *columns) {
 void list_sort_remove(list_ *list, char *name) {
 	int i;
 
+	assert(name != NULL);
+
+	/* FIXME: Shouldn't this be deep freeing? */
 	for (i = 0; i < list->sorts->len; i++) {
-		sort_ *sort;
+		sort_ *sort = NULL;
 
 		sort = g_array_index(list->sorts, sort_ *, i);
 		if (strcmp(sort->name, name) == 0) {
@@ -147,8 +284,8 @@ void list_sort_remove(list_ *list, char *name) {
 /* FIXME: This routine can and should be optimized. */
 gint list_sort_func (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer user_data) {
 	list_ *list;
-	char *row_data_a;
-	char *row_data_b;
+	char *row_data_a = NULL;
+	char *row_data_b = NULL;
 	int i;
 
 	assert(user_data != NULL);
@@ -156,7 +293,7 @@ gint list_sort_func (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpoint
 	list = user_data;
 	
 	for (i = 0; i < list->sort_active->len; i++) {
-		sort_col_ *sort_col;
+		sort_col_ *sort_col = NULL;
 		int cmp_rslt;
 		
 		sort_col = g_array_index(list->sort_active, sort_col_ *, i);
@@ -190,14 +327,14 @@ void list_sorts_remove_column(int col_nr) {
 	int i;
 
 	for (i = 0; i < list->sorts->len; i++) {
-		sort_ *sort;
+		sort_ *sort = NULL;
 		int j;
 		int col_nr_remove = -1;
 		
 		sort = g_array_index(list->sorts, sort_ *, i);
 
 		for (j = 0; j < sort->columns->len; j++) {
-			sort_col_ *sort_col;
+			sort_col_ *sort_col = NULL;
 
 			sort_col = g_array_index(sort->columns, sort_col_ *, j);
 
@@ -224,14 +361,13 @@ void list_sorts_rename_column(int col_nr, char *new_name) {
 	int i;
 
 	for (i = 0; i < list->sorts->len; i++) {
-		sort_ *sort;
+		sort_ *sort = NULL;
 		int j;
-		int col_nr_remove = -1;
 		
 		sort = g_array_index(list->sorts, sort_ *, i);
 
 		for (j = 0; j < sort->columns->len; j++) {
-			sort_col_ *sort_col;
+			sort_col_ *sort_col = NULL;
 
 			sort_col = g_array_index(sort->columns, sort_col_ *, j);
 
@@ -250,10 +386,9 @@ void list_sorts_add_column(int col_nr, char *name) {
 	int i;
 
 	for (i = 0; i < list->sorts->len; i++) {
-		sort_ *sort;
-		sort_col_ *sort_col;
+		sort_ *sort = NULL;
+		sort_col_ *sort_col = NULL;
 		int j, dup;
-		int col_nr_remove = -1;
 		
 		sort = g_array_index(list->sorts, sort_ *, i);
 
@@ -262,7 +397,7 @@ void list_sorts_add_column(int col_nr, char *name) {
 		 */
 		dup = 0;
 		for (j = 0; j < sort->columns->len && dup == 0; j++) {
-			sort_col_ *sort_col;
+			sort_col_ *sort_col = NULL;
 
 			sort_col = g_array_index(sort->columns, sort_col_ *, j);
 
@@ -280,18 +415,6 @@ void list_sorts_add_column(int col_nr, char *name) {
 
 			g_array_append_val(sort->columns, sort_col);
 		}
-
-//		g_array_append(
-//		for (j = 0; j < sort->columns->len; j++) {
-//			sort_col_ *sort_col;
-//
-//			sort_col = g_array_index(sort->columns, sort_col_ *, j);
-//
-//			if (sort_col->col_nr == col_nr) {
-//				free(sort_col->col_name);
-//				sort_col->col_name = strdup(new_name);
-//			}
-//		}
 	}
 
 	list->modified = TRUE;
@@ -299,8 +422,8 @@ void list_sorts_add_column(int col_nr, char *name) {
 
 
 void list_column_add(list_ *list, char *title) {
-	GtkCellRenderer *renderer;
-	GtkTreeViewColumn *col;
+	GtkCellRenderer *renderer = NULL;
+	GtkTreeViewColumn *col = NULL;
 	GType *types = NULL;
 	GtkListStore *liststore_old = NULL;
 	gchar *title_mem; /* For g_array_append */
@@ -347,7 +470,7 @@ void list_column_add(list_ *list, char *title) {
 
 	/* Copy data from previous liststore (if existed) and clean up old store */
 	if (liststore_old != NULL) {
-		gchar *row_data;
+		gchar *row_data = NULL;
 		GtkTreeIter iter_old;
 		GtkTreeIter iter;
 		
@@ -382,11 +505,12 @@ void list_column_add(list_ *list, char *title) {
 
 void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 	int liststore_remove_col_nr = -1;
-	GList *columns = NULL, *column_iter;
+	GList *columns = NULL, 
+		  *column_iter = NULL;
 	GType *types = NULL;
 	GtkListStore *liststore_old = NULL;
 	int i;
-	char *removed_col;
+	char *removed_col = NULL;
 
 	if (column == NULL) {
 		return;
@@ -444,7 +568,7 @@ void list_column_delete(list_ *list, GtkTreeViewColumn *column) {
 		free(types);
 		
 		if (liststore_old != NULL) {
-			gchar *row_data;
+			gchar *row_data = NULL;
 			GtkTreeIter iter_old;
 			GtkTreeIter iter;
 			
@@ -510,7 +634,7 @@ void list_column_rename(int col_nr, char *title) {
 gchar *list_row_add_empty(list_ *list) {
 	int i;
 	GtkTreeIter treeiter;
-	gchar *iterstr;
+	gchar *iterstr = NULL;
 
 	if (list->liststore == NULL) {
 		return(NULL);
@@ -559,7 +683,7 @@ void list_row_delete(list_ *list, GList *row_refs) {
 
 	iter = row_refs;
 	while (iter != NULL) {
-		GtkTreePath *path;
+		GtkTreePath *path = NULL;
 
 		path = gtk_tree_row_reference_get_path((GtkTreeRowReference*)iter->data);
 
@@ -583,7 +707,8 @@ void list_row_delete(list_ *list, GList *row_refs) {
 }
 
 void list_title_set(list_ *list, char *title) {
-	char *title_markup, *title_win;
+	char *title_markup = NULL, 
+		 *title_win = NULL;
 	
 	assert (title != list->title);
 
@@ -623,6 +748,7 @@ list_ *list_create(void) {
 	list->nr_of_rows   = 0;
 	list->sort_active  = g_array_new(FALSE, FALSE, sizeof(sort_col_ *));
 	list->sorts        = g_array_new(FALSE, FALSE, sizeof(sort_ *));
+	list->filters      = g_array_new(FALSE, FALSE, sizeof(filter_ *));
 	list->last_occ_row = -1;
 	list->last_occ_col = -1;
 	list->sort_single.col_name = NULL;
@@ -635,7 +761,8 @@ list_ *list_create(void) {
 
 void list_clear(list_ *list) {
 	if (list != NULL) {
-		GList *columns = NULL, *column_iter;
+		GList *columns = NULL, 
+			  *column_iter = NULL;
 		
 		/* Clear the data */
 		if (list->liststore != NULL) {
@@ -735,7 +862,7 @@ int list_import_csv(list_ *list, char *filename, char delimiter) {
 
 int list_export_csv(list_ *list, char *filename, char delimiter) {
 	GtkTreeIter iter;
-	gchar *row_data;
+	gchar *row_data = NULL;
 	int i;
 
 	FILE *f;
@@ -765,10 +892,9 @@ int list_export_csv(list_ *list, char *filename, char delimiter) {
 
 int list_export_ps(list_ *list, char *filename, int orientation) {
 	GtkTreeIter iter;
-	gchar *row_data;
+	gchar *row_data = NULL;
 	GList *columns = NULL, *column_iter = NULL;
 	int i;
-
 	FILE *f;
 	int page_height, page_width, page_top;
 	int margin_top, margin_left, margin_bottom;
@@ -790,6 +916,7 @@ int list_export_ps(list_ *list, char *filename, int orientation) {
 		default:
 			orientation_str = strdup("Unknown");
 			gtk_error_dialog("Unknown orientation");
+			exit(-1);
 			break;
 	}
 	
@@ -960,7 +1087,7 @@ int list_load_sorts(list_ *list, xmlNodeSetPtr nodeset_sorts) {
 	
 	for (i = 0; i < nodeset_sorts->nodeNr; i++) {
 		char *sort_name = NULL;
-		GArray *sort_cols;
+		GArray *sort_cols = NULL;
 
 		node_iter = nodeset_sorts->nodeTab[i]->children; /* sorts/sort* */
 	

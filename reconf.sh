@@ -9,6 +9,9 @@
 # Also run this tool whenever you make changes to any of the .am or .in 
 # files.
 #
+
+#!/bin/sh
+
 echo "Running autotools.."
 aclocal && autoheader && automake --add-missing --copy && autoconf
 echo "Creating synthetic /usr/share in current dir.."
